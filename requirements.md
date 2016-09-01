@@ -1,6 +1,7 @@
 Python version 2.7
 
-Python Packages:
+Python Packages
+
         NLTK
         Theano 0.9.0.dev2
         Lasagne 0.2.dev1
