@@ -1,0 +1,249 @@
+[
+{"begin": 4, "end": 11, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 16, "end": 24, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 34, "end": 46, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 47, "end": 55, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 61, "end": 68, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 73, "end": 81, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 91, "end": 103, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 104, "end": 112, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 118, "end": 125, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 130, "end": 138, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 148, "end": 160, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 161, "end": 169, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 175, "end": 182, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 187, "end": 195, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 205, "end": 217, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 218, "end": 226, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 232, "end": 239, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 244, "end": 252, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 262, "end": 274, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 275, "end": 283, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 289, "end": 296, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 301, "end": 309, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 319, "end": 331, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 332, "end": 340, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 346, "end": 353, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 358, "end": 366, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 376, "end": 388, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 389, "end": 397, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 403, "end": 410, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 415, "end": 423, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 433, "end": 445, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 446, "end": 454, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 460, "end": 467, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 472, "end": 480, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 490, "end": 502, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 503, "end": 511, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 517, "end": 524, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 529, "end": 537, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 547, "end": 559, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 560, "end": 568, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 574, "end": 581, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 586, "end": 594, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 604, "end": 616, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 617, "end": 625, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 631, "end": 638, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 643, "end": 651, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 661, "end": 673, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 674, "end": 682, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 688, "end": 695, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 700, "end": 708, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 718, "end": 730, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 731, "end": 739, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 745, "end": 752, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 757, "end": 765, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 775, "end": 787, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 788, "end": 796, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 802, "end": 809, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 814, "end": 822, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 832, "end": 844, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 845, "end": 853, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 859, "end": 866, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 871, "end": 879, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 889, "end": 901, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 902, "end": 910, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 916, "end": 923, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 928, "end": 936, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 946, "end": 958, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 959, "end": 967, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 973, "end": 980, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 985, "end": 993, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1003, "end": 1015, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1016, "end": 1024, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1030, "end": 1037, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1042, "end": 1050, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1060, "end": 1072, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1073, "end": 1081, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1087, "end": 1094, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1099, "end": 1107, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1117, "end": 1129, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1130, "end": 1138, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1144, "end": 1151, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1156, "end": 1164, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1174, "end": 1186, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1187, "end": 1195, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1201, "end": 1208, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1213, "end": 1221, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1231, "end": 1243, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1244, "end": 1252, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1258, "end": 1265, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1270, "end": 1278, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1288, "end": 1300, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1301, "end": 1309, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1315, "end": 1322, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1327, "end": 1335, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1345, "end": 1357, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1358, "end": 1366, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1372, "end": 1379, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1384, "end": 1392, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1402, "end": 1414, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1415, "end": 1423, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1429, "end": 1436, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1441, "end": 1449, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1459, "end": 1471, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1472, "end": 1480, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1486, "end": 1493, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1498, "end": 1506, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1516, "end": 1528, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1529, "end": 1537, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1543, "end": 1550, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1555, "end": 1563, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1573, "end": 1585, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1586, "end": 1594, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1600, "end": 1607, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1612, "end": 1620, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1630, "end": 1642, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1643, "end": 1651, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1657, "end": 1664, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1669, "end": 1677, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1687, "end": 1699, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1700, "end": 1708, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+,
+{"begin": 1714, "end": 1721, "CUI": "C0030705", "pref_term": "Patients", "sem_type": "podg", "src": "LNC+MTH+NCI+SNOMEDCT_US"}
+,
+{"begin": 1726, "end": 1734, "CUI": "C1619620", "pref_term": "Internal - CodeSystemType", "sem_type": "inpr", "src": "HL7V3.0+MTH"}
+,
+{"begin": 1744, "end": 1756, "CUI": "C0175668", "pref_term": "Secondary to", "sem_type": "tmco", "src": "MTH+NLMSubSyn+SNOMEDCT_US"}
+,
+{"begin": 1757, "end": 1765, "CUI": "C0043031", "pref_term": "Warfarin", "sem_type": "hops+orch+phsu", "src": "MTH+NCI+PDQ"}
+]
