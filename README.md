@@ -32,6 +32,12 @@ python scripts/get_file_list.py -h
 
 ### Deploying the tagger
 
+Trained model file is available at 
+```
+http://www.bio-nlp.org/external_user_uploads/skip-crf-approx.pkl 
+```
+UPDATE : Model file will be updated as various training runs for the deployement model finish. The updates models will be stored at the same url.
+
 Use the following statement to run the tagger on all the files in the file-list-output. The tagger will populate the output directory with json files, containing the predicted annotations.
 
 ```bash

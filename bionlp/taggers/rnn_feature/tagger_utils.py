@@ -1,4 +1,4 @@
-import pickle,logging,random,gensim,os
+import pickle,logging,random,gensim,os,sys
 import sklearn,pickle
 from random import shuffle
 from sklearn.metrics import f1_score,recall_score,precision_score
@@ -55,6 +55,8 @@ def pad_and_mask(X,U,Y,Z,maxlen ,padding='pre', value=0.):
 
 # added extra token_object iterable in hurry. TO DO : Refactor later.
 def iterate_minibatches(inputs,mask,targets, batchsize,token_objects=None):
+    if inputs.__len__() <=batchsize:
+        sys.exit('The input number of sentences({0}) are too low. They should be more than atleast one batch size ({1}).'.format(inputs.__len__(),batchsize))
     useless_entries =0
     if token_objects != None:
         indices=np.array(range(len(inputs)))
