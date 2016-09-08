@@ -35,7 +35,7 @@ def prepare_document_report(o,l,p,encoded_documents,output_dir):
             for res in doc_list[doc_id]:
                 for tok in res:
                     if tok[2]!=IGNORE_TAG:
-                        json_list.append({'id':ann_id,'type':tok[2],'begin':tok[1][0],'end':tok[1][1],'text':tok[0],'raw_text':doc_text[tok[1][0]:tok[1][1]]})
+                        json_list.append({'id':ann_id,'type':tok[2],'begin':tok[1][0],'end':tok[1][1],'tokenized_text':tok[0],'text':doc_text[tok[1][0]:tok[1][1]]})
                         ann_id+=1
             json_obj={}
             json_obj['file_id']=doc_id
