@@ -1,0 +1,1 @@
+The Annotation Guidlines used for annotating data for the paper [**Structured Prediction Models for RNN based Sequence Labeling in clinical text**](https://arxiv.org/abs/1608.00612), EMNLP 2016  will be posted soon. 
