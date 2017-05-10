@@ -1,6 +1,6 @@
 import numpy as np
 
-from crf_lstm_layer import CRFLayer,get_crf_training_loss
+from .crf_lstm_layer import CRFLayer,get_crf_training_loss
 import lasagne,time,theano,logging,sys
 import theano.tensor as T
 from bionlp.utils.utils import theano_logsumexp
@@ -11,10 +11,10 @@ logger= logging.getLogger(__name__)
 def setup_NN(worker,x_in,u_in,mask_in,y_in,params,numTags,emb_w):
     logger.info('Loading CRF-RNN network format with only unary modeling. Forward Backward will be used for calculating the marginals while training. The output sequence is calculated using posterior decoding.')
     batch_size = x_in.shape[0]
-    print('X train batch size {0}'.format(x_in.shape))
-    print('Y train batch size {0}'.format(y_in.shape))
-    print('U train batch size {0}'.format(u_in.shape))
-    print('mask train batch size {0}'.format(mask_in.shape))
+    print(('X train batch size {0}'.format(x_in.shape)))
+    print(('Y train batch size {0}'.format(y_in.shape)))
+    print(('U train batch size {0}'.format(u_in.shape)))
+    print(('mask train batch size {0}'.format(mask_in.shape)))
     xt=theano.shared(x_in)
     mt=theano.shared(mask_in)
     ut=theano.shared(u_in)
@@ -91,7 +91,7 @@ def setup_NN(worker,x_in,u_in,mask_in,y_in,params,numTags,emb_w):
     eval_out=lasagne.layers.get_output(sum_layer,deterministic=True)
     crf_output = theano.function([l_in.input_var,l_u_in.input_var,l_mask.input_var],eval_out)
     lstm_output = crf_output # Included for future functionality
-    print("output shape for theano net",lstm_output(x_in.astype('int32'),u_in.astype('float32'),mask_in.astype('float32')).shape)
+    print(("output shape for theano net",lstm_output(x_in.astype('int32'),u_in.astype('float32'),mask_in.astype('float32')).shape))
     t_out=T.tensor3()
     eval_cost=T.mean((eval_out-t_out)**2)
 
@@ -104,7 +104,7 @@ def setup_NN(worker,x_in,u_in,mask_in,y_in,params,numTags,emb_w):
 
 
     num_params = lasagne.layers.count_params(sum_layer,training=True)
-    print('Number of parameters: {0}'.format(num_params))
+    print(('Number of parameters: {0}'.format(num_params)))
 
     crf_train_loss=get_crf_training_loss(sum_layer,t_out,numTags,params,x_in,u_in,y_in,mask_in,l_in,l_u_in,l_mask)
     cost=T.mean(crf_train_loss)+ regularization_losses
@@ -132,7 +132,7 @@ def setup_NN(worker,x_in,u_in,mask_in,y_in,params,numTags,emb_w):
     compute_cost_regularization = theano.function([],cost_regularization)
     acc_=T.sum(T.eq(T.argmax(eval_out,axis=2),T.argmax(t_out,axis=2))*l_mask.input_var)/T.sum(l_mask.input_var)
     compute_acc = theano.function([l_in.input_var,l_u_in.input_var,t_out,l_mask.input_var],acc_)
-    print('Time to build and compile model {0}'.format(time.time()-premodel))
+    print(('Time to build and compile model {0}'.format(time.time()-premodel)))
 
 
     return {'crf_output':crf_output,'lstm_output':lstm_output,'train':train,'compute_cost':compute_cost,'compute_acc':compute_acc,'compute_cost_loss':compute_cost_loss,'compute_cost_regularization':compute_cost_regularization,'final_layers':sum_layer}

@@ -37,7 +37,7 @@ def trainer(config_params):
     del raw_text
     del documents
     logger.info('Gathering stored vocabularies')
-    model_file= pickle.load(open(config_params['model'],'rb'))
+    model_file= pickle.load(open(config_params['model'],'rb'), encoding='latin1')
     w2i=model_file['w2i']
     umls_vocab_dict=model_file['umls_vocab']
 
@@ -68,16 +68,19 @@ def main(config_params):
     config_params['trainable']=False
     config_params['dataset_percentage']=100            # Using hardcoded dataset percentage
     config_params['error-analysis']=deploy_params['output']
-    print "Using the parameters :"
-    print json.dumps(config_params,indent =2)
+    print("Using the parameters :")
+    print(json.dumps(config_params,indent =2))
     trainer(config_params)
-    print "Using the parameters :"
-    print json.dumps(config_params,indent =2)
+    print("Using the parameters :")
+    print(json.dumps(config_params,indent =2))
 
 
 if __name__=="__main__":
     deploy_params=deploy_arguments()
-    nn_v_d=pickle.load(open(deploy_params['model'],'rb'))
+
+    # check http://stackoverflow.com/questions/28218466/unpickling-a-python-2-object-with-python-3
+    nn_v_d=pickle.load(open(deploy_params['model'],'rb'), encoding='latin1')
+
     config_params=nn_v_d['params']
     config_params['model']=deploy_params['model']
     config_params['noeval']=deploy_params['noeval']
