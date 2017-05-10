@@ -70,3 +70,9 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+# PyCharm source
+.idea
+
+# OSX files
+*.DS_STORE
