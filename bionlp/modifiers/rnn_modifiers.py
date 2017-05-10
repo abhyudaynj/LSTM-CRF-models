@@ -11,18 +11,18 @@ from bionlp.data.token import Token as Token
 from bionlp.data.sentence import Sentence as Sentence
 from bionlp.data.document import Document as Document
 from bionlp.data.dataset import Dataset as Dataset
-from modifier_utils import punct_list
+from .modifier_utils import punct_list
 
 def add_umls_type(dataset,cache_file=None):
     dataset.active.append('UMLS_TYPE')
     logger.info('Adding UMLS Semantic Type information')
     for current_doc in tqdm(dataset.value):
         text_i=current_doc.attr['raw_text']
-        tag_positions=[[] for idxs in xrange(len(text_i))]
+        tag_positions=[[] for idxs in range(len(text_i))]
         umls_objects=current_doc.attr['metamap_anns']
         sorted_umls_objects=sorted(umls_objects,key=itemgetter('begin'))
         for umls_obj in umls_objects:
-            for idx in xrange(umls_obj['begin'],umls_obj['end']):
+            for idx in range(umls_obj['begin'],umls_obj['end']):
                 tag_positions[idx].append(umls_obj['sem_type'].split('+'))
 
         for sent in current_doc.value:

@@ -11,7 +11,7 @@ import itertools
 import time
 import logging
 import lasagne
-import tagger_utils as preprocess
+from . import tagger_utils as preprocess
 from sklearn.metrics import f1_score
 from sklearn.utils import shuffle as sk_shuffle
 import theano.tensor as T
@@ -43,19 +43,19 @@ def train_NN(train,crf_output,lstm_output,train_indices,compute_cost,compute_acc
     y_dev=Y[dev_i]
     mask_dev=Mask[dev_i]
     num_batches=float(sum(1 for _ in preprocess.iterate_minibatches(x_train,mask_train,y_train,params['batch-size'])))
-    for iter_num in xrange(params['epochs']):
+    for iter_num in range(params['epochs']):
         try:
             iter_cost=0.0
             iter_acc=0.0
             iter_cost_regularization=0.0
-            print('Iteration number : {0}'.format(iter_num+1))
+            print(('Iteration number : {0}'.format(iter_num+1)))
             for x_i,m_i,y_i in tqdm(preprocess.iterate_minibatches(x_train,mask_train,y_train,params['batch-size']),total=num_batches,leave=False):
                 train(x_i[:,:,:1].astype('int32'),x_i[:,:,1:].astype('float32'),y_i.astype('float32'),m_i.astype('float32'))
                 iter_cost+=compute_cost(x_i[:,:,:1].astype('int32'),x_i[:,:,1:].astype('float32'),y_i.astype('float32'),m_i.astype('float32'))
                 iter_acc+=compute_acc(x_i[:,:,:1].astype('int32'),x_i[:,:,1:].astype('float32'),y_i.astype('float32'),m_i.astype('float32'))
                 iter_cost_regularization+=compute_cost_regularization()
-            print('TRAINING : Accuracy = {0}'.format(iter_acc/num_batches))
-            print('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(iter_cost/num_batches,iter_cost_regularization/num_batches,(iter_cost+iter_cost_regularization)/num_batches))
+            print(('TRAINING : Accuracy = {0}'.format(iter_acc/num_batches)))
+            print(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(iter_cost/num_batches,iter_cost_regularization/num_batches,(iter_cost+iter_cost_regularization)/num_batches)))
             if params['patience-mode']!=0:
                 val_acc,_=evaluate_neuralnet(lstm_output,x_dev,mask_dev,y_dev,strict=True,verbose=False)
             else:
@@ -64,25 +64,25 @@ def train_NN(train,crf_output,lstm_output,train_indices,compute_cost,compute_acc
                 vals.append(val_acc)
                 vals = vals[1:]
                 max_in=np.argmax(vals)
-                print "val acc argmax {1} : list is : {0}".format(vals,max_in)
+                print("val acc argmax {1} : list is : {0}".format(vals,max_in))
                 if max_in ==0:
-                    print "Stopping because my patience has reached its limit."
+                    print("Stopping because my patience has reached its limit.")
                     break
             if iter_num %5 ==0:
                 res=evaluate_neuralnet(lstm_output,x_dev,mask_dev,y_dev,strict=True)
-        except IOError, e:
+        except IOError as e:
             if e.errno!=errno.EINTR:
                 raise
             else:
-                print " EINTR ERROR CAUGHT. YET AGAIN "
+                print(" EINTR ERROR CAUGHT. YET AGAIN ")
 
-    print "Final Validation eval"
+    print("Final Validation eval")
     evaluate_neuralnet(lstm_output,x_dev,mask_dev,y_dev,strict=True)
 
 
 def callback_NN(compute_cost,compute_acc,X_test,mask_test,y_test):
     num_valid_batches=float(sum(1 for _ in preprocess.iterate_minibatches(X_test,mask_test,y_test,params['batch-size'])))
-    print('num_valid_batches {0}'.format(num_valid_batches))
+    print(('num_valid_batches {0}'.format(num_valid_batches)))
     sl.info('Executing validation Callback')
     val_loss=0.0
     val_acc =0.0
@@ -90,7 +90,7 @@ def callback_NN(compute_cost,compute_acc,X_test,mask_test,y_test):
     for indx,(x_i,m_i,y_i) in enumerate(preprocess.iterate_minibatches(X_test,mask_test,y_test,params['batch-size'])):
         val_loss+=compute_cost(x_i[:,:,:1].astype('int32'),x_i[:,:,1:].astype('float32'),y_i.astype('float32'),m_i.astype('float32'))
         val_acc+=compute_acc(x_i[:,:,:1].astype('int32'),x_i[:,:,1:].astype('float32'),y_i.astype('float32'),m_i.astype('float32'))
-    print('VALIDATION : acc = {0} loss = {1}'.format(val_acc/num_valid_batches,val_loss/num_valid_batches))
+    print(('VALIDATION : acc = {0} loss = {1}'.format(val_acc/num_valid_batches,val_loss/num_valid_batches)))
     return val_acc/num_valid_batches
 
 def evaluate_neuralnet(lstm_output,X_test,mask_test,y_test,z_test=None,strict=False,verbose=True):
@@ -99,7 +99,7 @@ def evaluate_neuralnet(lstm_output,X_test,mask_test,y_test,z_test=None,strict=Fa
     if z_test == None:
         sl.info('z_test not provided. Using mask vector as a placeholder')
         z_test = mask_test
-    print('Mask len test',len(mask_test))
+    print(('Mask len test',len(mask_test)))
     predicted=[]
     predicted_sent=[]
     label=[]
@@ -125,7 +125,8 @@ def evaluate_neuralnet(lstm_output,X_test,mask_test,y_test,z_test=None,strict=Fa
 
     return res,(original_sent,label_sent,predicted_sent)
 
-def driver(worker,(train_i,test_i)):
+def driver(worker, xxx_todo_changeme):
+    (train_i,test_i) = xxx_todo_changeme
     if worker ==0:
         sl.info('Embedding Shape : {0}'.format(emb_w.shape))
         sl.info('{0} train sequences'.format(len(X[train_i])))
@@ -156,7 +157,7 @@ def driver(worker,(train_i,test_i)):
         train_NN(train,crf_output,lstm_output,train_i,compute_cost,compute_acc,compute_cost_regularization,worker)
     else:
         sl.info('Trainable is off. Loading Network weights from {0}'.format(params['model']))
-        nn_v_d=pickle.load(open(params['model'],'rb'))
+        nn_v_d=pickle.load(open(params['model'],'rb'), encoding='latin1')
         lasagne.layers.set_all_param_values(netd['final_layers'],nn_v_d['nn'])
 
     if 'final_layers' in netd and params['model'] is not 'None' and params['trainable'] is True:
@@ -172,13 +173,13 @@ def driver(worker,(train_i,test_i)):
     if params['deploy']==1:
         _,results=evaluate_neuralnet(lstm_output,np.concatenate([X[test_i].astype('float32'),U[test_i]],axis=2),Mask[test_i],Y[test_i],Z[test_i],strict=True,verbose=False)
     else:
-        print "Final evalution for this fold on testing set"
+        print("Final evalution for this fold on testing set")
         _,results=evaluate_neuralnet(lstm_output,np.concatenate([X[test_i].astype('float32'),U[test_i]],axis=2),Mask[test_i],Y[test_i],Z[test_i],strict=True,verbose=True)
     return results
 
 
 def store_response(o,l,p,filename='response.pkl'):
-    print "Storing responses in {0}".format(filename)
+    print("Storing responses in {0}".format(filename))
     pickle.dump((params,o,l,p),open(filename,'wb'))
 
 
@@ -193,17 +194,17 @@ def cross_validation_run():
     label_sent=[]
     predicted_sent=[]
     original_sent=[]
-    for worker in xrange(len(splits)):
-        print "########### Cross Validation run : {0}".format(worker)
+    for worker in range(len(splits)):
+        print("########### Cross Validation run : {0}".format(worker))
         o,l,p = driver(worker,splits[worker])
         label_sent += l
         predicted_sent += p
         original_sent +=o
-    print "#######################VALIDATED SET ########"
+    print("#######################VALIDATED SET ########")
     flat_label=[word for sentenc in label_sent for word in sentenc]
     flat_predicted=[word for sentenc in predicted_sent for word in sentenc]
     eval_metrics.get_Approx_Metrics(flat_label,flat_predicted,preMsg='NN_VALIDATION:',flat_list=True)
-    print "STRICT ---"
+    print("STRICT ---")
     eval_metrics.get_Exact_Metrics(label_sent,predicted_sent)
     if params['error-analysis']!='None':
         store_response(original_sent,label_sent,predicted_sent,params['error-analysis'])
@@ -214,12 +215,12 @@ def deploy_run(splits,params):
     sl.info('Running in Deploy Mode. This means I will train on all available data. Final Eval metrics will not be meaningful')
     if params['model'] is 'None':
         sl.warning('No model file location is provided. Without a model file location, the deployable model will not be saved anywhere')
-    res_dict=driver(0,(np.array(range(len(Y))),splits[1]))
+    res_dict=driver(0,(np.array(list(range(len(Y)))),splits[1]))
     return res_dict
 
 def evaluate_run():
     sl.info('Running in Evaluate Mode. I will not learn anything, only evaluate the existing model on the entire provided data ')
-    o,l,p=driver(0,(np.array(range(len(Y))),np.array(range(len(Y)))))
+    o,l,p=driver(0,(np.array(list(range(len(Y)))),np.array(list(range(len(Y))))))
     if params['error-analysis']!='None':
         store_response(o,l,p,params['error-analysis'])
     return o,l,p
@@ -263,8 +264,8 @@ def rnn_train(dataset,config_params,vocab,umls_vocab):
     sl.info('Total non zero entries in the Mask Inputs are {0}. This number should be equal to total number of tokens in the entire dataset'.format(sum(sum(_) for _ in Mask)))
     if params['shuffle']==1:
         X,U,Y,Z,Mask=sk_shuffle(X,U,Y,Z,Mask,random_state=0)
-    i2t = {v: k for k, v in t2i.items()}
-    i2w = {v: k for k, v in w2i.items()}
+    i2t = {v: k for k, v in list(t2i.items())}
+    i2w = {v: k for k, v in list(w2i.items())}
     splits = data_utils.make_cross_validation_sets(len(Y),params['folds'],training_percent=params['training-percent'])
     try:
         if params['trainable'] is False:
@@ -275,10 +276,10 @@ def rnn_train(dataset,config_params,vocab,umls_vocab):
             (o,l,p)=single_run()
         else:
             (o,l,p)=cross_validation_run()
-    except IOError, e:
+    except IOError as e:
         if e.errno!=errno.EINTR:
             raise
         else:
-            print " EINTR ERROR CAUGHT. YET AGAIN "
+            print(" EINTR ERROR CAUGHT. YET AGAIN ")
     sl.info('Using the parameters:\n {0}'.format(json.dumps(params,indent=2)))
     return (o,l,p)

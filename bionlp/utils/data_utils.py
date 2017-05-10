@@ -30,9 +30,9 @@ def make_cross_validation_sets(data_len,n,training_percent=None):
         training_percent = float(training_percent)/100.0
     split_length=int(data_len/n)
     splits=[None]*n
-    for i in xrange(n):
-        arr=np.array(range(data_len))
-        test=range(i*split_length,(i+1)*split_length)
+    for i in range(n):
+        arr=np.array(list(range(data_len)))
+        test=list(range(i*split_length,(i+1)*split_length))
         mask=np.ones(arr.shape,dtype=bool)
         mask[test]=0
         train=arr[mask]
