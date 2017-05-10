@@ -29,7 +29,7 @@ def train_NN(train,crf_output,lstm_output,train_indices,compute_cost,compute_acc
     sl.info('Dividing the training set into {0} % training and {1} % dev set'.format(100-params['dev'],params['dev']))
     train_i=np.copy(train_indices)
     np.random.shuffle(train_i)
-    dev_length = len(train_indices)*params['dev']/100
+    dev_length = len(train_indices)*params['dev']//100
     dev_i=train_i[:dev_length]
     train_i=train_i[dev_length:]
     sl.info('{0} training set samples and {1} dev set samples'.format(len(train_i),len(dev_i)))
