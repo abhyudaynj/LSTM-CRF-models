@@ -8,7 +8,7 @@ from bionlp.data.sentence import Sentence as Sentence
 from bionlp.data.document import Document as Document
 from bionlp.data.dataset import Dataset as Dataset
 
-import modifier_utils
+from . import modifier_utils
 
 def add_POS(dataset):
     dataset.active.append('POS')

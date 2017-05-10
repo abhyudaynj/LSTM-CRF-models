@@ -1,4 +1,4 @@
-from __future__ import division
+
 from tqdm import tqdm
 from nltk import word_tokenize,sent_tokenize
 import re,json,os
@@ -34,8 +34,8 @@ def verify_positions(anns,txt):
         anno=str(''.join(anno.split("\\n")))
         ptxt=str(''.join(ptxt.split("\\n")))
         if ''.join(re.split("[\r\n\s]",anno)) !=''.join(re.split("[\r\n\s]",ptxt)):
-            print "Annotation id {0}".format(ann[4])
-            print "mismatch{2} \'{0}\'\n ------------- instead of ------ \n\'{1}\'\n ------- found at provided position \n\n".format(''.join(re.split("[\r\n]",anno)),''.join(re.split("[\r\n]",ptxt)),(ann[0],ann[1],ann[3]))
+            print("Annotation id {0}".format(ann[4]))
+            print("mismatch{2} \'{0}\'\n ------------- instead of ------ \n\'{1}\'\n ------- found at provided position \n\n".format(''.join(re.split("[\r\n]",anno)),''.join(re.split("[\r\n]",ptxt)),(ann[0],ann[1],ann[3])))
             mismt+=1.0
         else:
             mtch+=1.0
@@ -63,8 +63,8 @@ def prepareSents(wrds):
     s_idx=0
     while idx < len(text) and s_idx<len(sent_list):
         if not match_words(sent_list[s_idx],text[idx:idx+len(sent_list[s_idx])]):
-            print "NLTK:"+ str(sent_list[s_idx])
-            print 'MINE:' + str(text[idx:idx+len(sent_list[s_idx])])
+            print("NLTK:"+ str(sent_list[s_idx]))
+            print('MINE:' + str(text[idx:idx+len(sent_list[s_idx])]))
         else:
             valid_sents+=[text[idx:idx+len(sent_list[s_idx])]]
         idx=idx+len(sent_list[s_idx])
@@ -76,7 +76,7 @@ def build_char_annotations(anns,txt):
     for start,stop,text,types,ann_ids in anns:
         if stop >= len(chr_list):
             logger.warning('Annotation id {0} is out of bounds of the text provided'.format(ann_ids))
-            print('Annotation id {0} is out of bounds of the text provided'.format(ann_ids))
+            print(('Annotation id {0} is out of bounds of the text provided'.format(ann_ids)))
         chr_list[start:stop]=[(charac[0],start+chr_idx,types) for chr_idx,charac in enumerate(chr_list[start:stop])]
     tkn_list=concat_words(strip_chars(chr_list))
     return prepareSents(tkn_list)

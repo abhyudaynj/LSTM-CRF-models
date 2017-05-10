@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 from bionlp.utils.utils import theano_logsumexp
 import lasagne,sys
 import logging,theano

@@ -59,7 +59,7 @@ def iterate_minibatches(inputs,mask,targets, batchsize,token_objects=None):
         sys.exit('The input number of sentences({0}) are too low. They should be more than atleast one batch size ({1}).'.format(inputs.__len__(),batchsize))
     useless_entries =0
     if token_objects != None:
-        indices=np.array(range(len(inputs)))
+        indices=np.array(list(range(len(inputs))))
         np.random.shuffle(indices)
         start_idx=0
         for start_idx in range(0, len(inputs) - batchsize + 1, batchsize):
@@ -74,7 +74,7 @@ def iterate_minibatches(inputs,mask,targets, batchsize,token_objects=None):
             useless_entries+=len(last_mask[:-len(indices[start_idx+batchsize:])])
             yield last_inputs,last_mask,last_targets,last_token
     else:
-        indices=np.array(range(len(inputs)))
+        indices=np.array(list(range(len(inputs))))
         np.random.shuffle(indices)
         start_idx=0
         for start_idx in range(0, len(inputs) - batchsize + 1, batchsize):
@@ -108,7 +108,7 @@ def trim_tags(tagged_data):
     return tagged_data
 
 def get_embedding_weights(w2i,params):
-    i2w={i: word for word, i in w2i.iteritems()}
+    i2w={i: word for word, i in w2i.items()}
     logger.info('embedding sanity check (should be a word) :{0}'.format(i2w[12]))
     if params['word2vec']==1 and params['trainable']:
         if 'mdl' in params['dependency'] and os.path.isfile(params['dependency']['mdl']):
@@ -120,7 +120,7 @@ def get_embedding_weights(w2i,params):
     else:
         # Use random initialization for embeddings, if word2vec option is 0 or if this is a deploy run. In deploy runs the relevant embeddings will be reset later.
         mdl={}
-    emb_i=np.array([mdl[str(i2w[i])] if i in i2w and str(i2w[i]) in mdl else np.zeros(200,) for i in xrange(len(w2i))])
+    emb_i=np.array([mdl[str(i2w[i])] if i in i2w and str(i2w[i]) in mdl else np.zeros(200,) for i in range(len(w2i))])
     return emb_i
 
 def construct_binary_features(tagged_sentence):
@@ -154,7 +154,7 @@ def encode_words(tagged_data,entire_note,params,vocab):
     v_set,t_set=get_vocab(tagged_data)
     if 'trainable' in params and params['trainable'] == False and params['model']!='None':
         logger.info('Trainable is off and valid model filename is provided. Reading and storing the word and tag list order from model file {0}'.format(params['model']))
-        nn_dict=pickle.load(open(params['model'],'rb'))
+        nn_dict=pickle.load(open(params['model'],'rb'), encoding='latin1')
         w2i=nn_dict['w2i']
         t2i=nn_dict['t2i']
         emb_w=nn_dict

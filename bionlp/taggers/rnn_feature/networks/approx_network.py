@@ -1,6 +1,6 @@
 import numpy as np
 
-from crf_approx_layer import get_crf_training_loss,constructApproximations
+from .crf_approx_layer import get_crf_training_loss,constructApproximations
 import lasagne,time,theano,logging,sys,pickle
 import theano.tensor as T
 from bionlp.utils.utils import theano_logsumexp
@@ -93,12 +93,12 @@ def setup_NN(worker,x_in,u_in,mask_in,y_in,params,numTags,emb_w):
     outp,eval_out,params_approx,approx_regularization,final_layers=constructApproximations(crf_layer,pairwise,t_out,numTags,params,x_in,u_in,y_in,mask_in,l_in,l_mask,l_u_in,normalization=True)
     if params['trainable'] is False:
         logger.info('Trainable is off. Loading Network weights from {0}'.format(params['model']))
-        nn_v_d=pickle.load(open(params['model'],'rb'))
+        nn_v_d=pickle.load(open(params['model'],'rb'),encoding='latin1')
         lasagne.layers.set_all_param_values(final_layers,nn_v_d['nn'])
 
     crf_output = theano.function([l_in.input_var,l_u_in.input_var,l_mask.input_var],eval_out)
     lstm_output = crf_output # Included for future functionality
-    print("output shape for theano net",lstm_output(x_in.astype('int32'),u_in.astype('float32'),mask_in.astype('float32')).shape)
+    print(("output shape for theano net",lstm_output(x_in.astype('int32'),u_in.astype('float32'),mask_in.astype('float32')).shape))
     eval_cost=T.mean((eval_out-t_out)**2)
 
     all_params = params_approx
@@ -136,7 +136,7 @@ def setup_NN(worker,x_in,u_in,mask_in,y_in,params,numTags,emb_w):
     compute_cost_regularization = theano.function([],regularization_losses)
     acc_=T.sum(T.eq(T.argmax(eval_out,axis=2),T.argmax(t_out,axis=2))*l_mask.input_var)/T.sum(l_mask.input_var)
     compute_acc = theano.function([l_in.input_var,l_u_in.input_var,t_out,l_mask.input_var],acc_)
-    print('Time to build and compile model {0}'.format(time.time()-premodel))
+    print(('Time to build and compile model {0}'.format(time.time()-premodel)))
 
 
     return {'crf_output':crf_output,'lstm_output':lstm_output,'train':train,'compute_cost':compute_cost,'compute_acc':compute_acc,'compute_cost_loss':compute_cost_loss,'compute_cost_regularization':compute_cost_regularization,'final_layers':final_layers}

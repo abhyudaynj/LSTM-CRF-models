@@ -27,14 +27,14 @@ def trainer(config_params):
         raw_text,documents=annotated_file_extractor(config_params['input'],config_params['umls'])
         encoded_documents=encode_data_format(documents,raw_text,config_params['umls'])
     else:
-        encoded_documents=pickle.load(open(config_params['dependency']['data'],'rb'))
+        encoded_documents=pickle.load(open(config_params['dependency']['data'],'rb'), encoding='latin1')
         logger.info('Loaded preprocessed input dataset.\nNumber of documents extracted {0}'.format(encoded_documents.value.__len__()))
 
     w2i=None
     ## ADDING extra vocab terms to NN embedding
     if config_params['extra-vocab'] > 0 and 'vocab-data' in config_params['dependency']:
         logger.info('Calculating Extra vocab from {0}'.format(config_params['dependency']['vocab-data']))
-        extra_data=[pickle.load(open(dset,'rb')) for dset in config_params['dependency']['vocab-data']]
+        extra_data=[pickle.load(open(dset,'rb'), encoding='latin1') for dset in config_params['dependency']['vocab-data']]
         logger.info('Loaded cached vocab dataset.')
 
         total_corpus=[encoded_documents]+ extra_data
@@ -75,8 +75,8 @@ def main(config_params):
     config_params['dependency']=datas
     config_params['trainable']=True
     config_params['dataset_percentage']=100            # Using hardcoded dataset percentage
-    print "Using the parameters :"
-    print json.dumps(config_params,indent =2)
+    print("Using the parameters :")
+    print(json.dumps(config_params,indent =2))
 
     trainer(config_params)
 

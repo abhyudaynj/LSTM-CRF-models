@@ -14,7 +14,7 @@ def prepare_document_report(o,l,p,encoded_documents,output_dir):
         for t_id,token in enumerate(sent_token):
             tem=p[s_id]
             if t_id >= len(p[s_id]):
-                print t_id, len(p[s_id])
+                print(t_id, len(p[s_id]))
             token.attr['predicted']=tem[t_id]
         produced_sentence=[(tk.value,(tk.attr['offset'],tk.attr['offset']+tk.attr['length']),tk.attr['predicted']) for tk in sent_token]
         if sent_token[0].attr['document'] in doc_list:
