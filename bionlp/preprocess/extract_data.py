@@ -41,6 +41,7 @@ def verify_positions(anns, txt):
             print("mismatch{2} \'{0}\'\n ------------- instead of ------ \n\'{1}\'\n ------- found at provided position \n\n".format(
                 ''.join(re.split("[\r\n]", anno)), ''.join(re.split("[\r\n]", ptxt)), (ann[0], ann[1], ann[3])))
             mismt += 1.0
+            raise Exception('Preparation error in training data')
         else:
             mtch += 1.0
             valid_matches.append(ann)
