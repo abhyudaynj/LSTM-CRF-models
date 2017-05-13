@@ -31,7 +31,7 @@ def get_emb_vocab(dataset_list):
 def get_all_vocab(wordvec_model):
     logger.info('Loading the Entire vocabulary in Word Vector model file {0}'.format(
         wordvec_model))
-    mdl = gensim.models.Word2Vec.load_word2vec_format(
+    mdl = gensim.models.KeyedVectors.load_word2vec_format(
         wordvec_model, binary=True)
     w2i = {word: i + 1 for i, word in enumerate(mdl.vocab.keys())}
     w2i['OOV_CHAR'] = 0

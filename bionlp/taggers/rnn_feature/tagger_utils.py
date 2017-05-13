@@ -130,7 +130,7 @@ def get_embedding_weights(w2i, params):
     # logger.info('embedding sanity check (should be a word) :{0}'.format(i2w[12]))
     if params['word2vec'] == 1 and params['trainable']:
         if 'mdl' in params['dependency'] and os.path.isfile(params['dependency']['mdl']):
-            mdl = gensim.models.Word2Vec.load_word2vec_format(
+            mdl = gensim.models.KeyedVectors.load_word2vec_format(
                 params['dependency']['mdl'], binary=True)
             logger.info('{0},{1}'.format(mdl['is'].shape, len(w2i)))
         else:
