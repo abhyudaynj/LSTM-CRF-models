@@ -33,3 +33,6 @@ Further instructions
         (linked from http://devmount.github.io/GermanWordEmbeddings/)
         as the word-vec to initialize the weights. 
         Then edit `mld` in dependency.json to point to this file
+        
+        3. place the content of the data directory in Architraver/Playground/ExtractionData/data 
+        into the data directory of the project 
