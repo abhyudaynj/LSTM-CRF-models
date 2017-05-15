@@ -1,11 +1,15 @@
-import logging,lasagne
+import logging
+import lasagne
 import numpy as np
 import theano.tensor as T
 logging.basicConfig()
-logger= logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-# adapted from https://github.com/nouiz/lisa_emotiw/blob/master/emotiw/wardefar/crf_theano.py
+# adapted from
+# https://github.com/nouiz/lisa_emotiw/blob/master/emotiw/wardefar/crf_theano.py
+
+
 def theano_logsumexp(x, axis=None):
     """
     Compute log(sum(exp(x), axis=axis) in a numerically stable
@@ -22,7 +26,6 @@ def theano_logsumexp(x, axis=None):
     result : ndarray or scalar
         The result of the log(sum(exp(...))) operation.
     """
-    xmax = T.max(x,axis=axis, keepdims=True)
-    xmax_ = T.max(x,axis=axis)
+    xmax = T.max(x, axis=axis, keepdims=True)
+    xmax_ = T.max(x, axis=axis)
     return xmax_ + T.log(T.exp(x - xmax).sum(axis=axis))
-
