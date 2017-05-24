@@ -142,6 +142,22 @@ def get_regular_or_capitalized_embeddings(w2i, i2w, mdl, params):
         embeddings.append(term_emb)
     return np.array(embeddings)
 
+def create_vocab_output_files(emb_i, i2w, zero_vectors_out_file, nonzero_vectors_out_file):
+    with open(zero_vectors_out_file, "w") as zero_f:
+        with open(nonzero_vectors_out_file, "w") as nonzero_f:
+            for i in range(len(emb_i)):
+                term_is_nonzero = False
+                vec = emb_i[i]
+                term = i2w[i]
+                for elem in vec:
+                    if elem != 0.:
+                        term_is_nonzero = True
+                        break
+                if term_is_nonzero:
+                    nonzero_f.write(term + "\n")
+                else:
+                    zero_f.write(term + "\n")
+
 
 def get_embedding_weights(w2i, params):
     i2w = {i: word for word, i in w2i.items()}
