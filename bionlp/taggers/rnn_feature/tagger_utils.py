@@ -133,17 +133,22 @@ def get_embedding_weights(w2i, params):
             mdl = gensim.models.KeyedVectors.load_word2vec_format(
                 params['dependency']['mdl'], binary=True)
             logger.info('{0},{1}'.format(mdl['is'].shape, len(w2i)))
+            # read the embedding vector size from the given model
+            embedding_vector_size = mdl.syn0.shape[1]
         else:
             logger.warning(
                 'No word2vec model binary file found. Loading random weight vectors instead.')
             mdl = {}
+            embedding_vector_size = params['emb1_size']
     else:
         # Use random initialization for embeddings, if word2vec option is 0 or
         # if this is a deploy run. In deploy runs the relevant embeddings will
         # be reset later.
         mdl = {}
+        embedding_vector_size = params['emb1_size']
     emb_i = np.array([mdl[str(i2w[i])] if i in i2w and str(
-        i2w[i]) in mdl else np.zeros(200,) for i in range(len(w2i))])
+        i2w[i]) in mdl else np.zeros(embedding_vector_size,) for i in range(len(w2i))])
+
     return emb_i
 
 
