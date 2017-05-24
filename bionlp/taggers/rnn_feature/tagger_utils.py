@@ -123,6 +123,25 @@ def trim_tags(tagged_data):
                           for x, y in tagged_data[i]]
     return tagged_data
 
+def get_regular_or_capitalized_embeddings(w2i, i2w, mdl, params):
+    embedding_vector_size = params['emb1_size']
+    embeddings = []
+    for i in range(len(w2i)):
+        term_emb = None
+        if i in i2w:
+            regular_term = str(i2w[i])
+            capitalized_term = regular_term.capitalize()
+            if regular_term in mdl:
+                term_emb = mdl[regular_term]
+            elif capitalized_term in mdl:
+                term_emb = mdl[capitalized_term]
+
+        if term_emb == None:
+            term_emb = np.zeros(embedding_vector_size,)
+
+        embeddings.append(term_emb)
+    return np.array(embeddings)
+
 
 def get_embedding_weights(w2i, params):
     i2w = {i: word for word, i in w2i.items()}
@@ -146,8 +165,7 @@ def get_embedding_weights(w2i, params):
         # be reset later.
         mdl = {}
         embedding_vector_size = params['emb1_size']
-    emb_i = np.array([mdl[str(i2w[i])] if i in i2w and str(
-        i2w[i]) in mdl else np.zeros(embedding_vector_size,) for i in range(len(w2i))])
+    emb_i = get_regular_or_capitalized_embeddings(w2i, i2w, mdl, params)
 
     return emb_i
 
