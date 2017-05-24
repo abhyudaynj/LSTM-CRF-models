@@ -8,6 +8,7 @@ Python Packages
         Numpy
         Scipy
         Gensim
+        sklearn
         tqdm
 
 For Full Functionality
