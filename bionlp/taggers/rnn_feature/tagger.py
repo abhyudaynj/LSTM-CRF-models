@@ -27,6 +27,7 @@ setup_NN = {}
 sl = logging.getLogger(__name__)
 
 
+# TODO: worker is not used
 def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, compute_acc, compute_cost_regularization, worker):
     if params['patience'] != 0:
         vals = [0.0] * params['patience']
@@ -51,55 +52,83 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
     mask_dev = Mask[dev_i]
     num_batches = float(sum(1 for _ in preprocess.iterate_minibatches(
         x_train, mask_train, y_train, params['batch-size'])))
-    for iter_num in range(params['epochs']):
-        try:
-            iter_cost = 0.0
-            iter_acc = 0.0
-            iter_cost_regularization = 0.0
-            print(('Iteration number : {0}'.format(iter_num + 1)))
-            for x_i, m_i, y_i in tqdm(preprocess.iterate_minibatches(x_train, mask_train, y_train, params['batch-size']), total=num_batches, leave=False):
-                train(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
-                    'float32'), y_i.astype('float32'), m_i.astype('float32'))
-                iter_cost += compute_cost(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
-                    'float32'), y_i.astype('float32'), m_i.astype('float32'))
-                iter_acc += compute_acc(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
-                    'float32'), y_i.astype('float32'), m_i.astype('float32'))
-                iter_cost_regularization += compute_cost_regularization()
-            print(('TRAINING : Accuracy = {0}'.format(iter_acc / num_batches)))
-            print(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
-                iter_cost / num_batches, iter_cost_regularization / num_batches, (iter_cost + iter_cost_regularization) / num_batches)))
-            if params['patience-mode'] != 0:
-                val_acc, _ = evaluate_neuralnet(
-                    lstm_output, x_dev, mask_dev, y_dev, strict=True, verbose=False)
-            else:
-                val_acc = callback_NN(
-                    compute_cost, compute_acc, x_dev, mask_dev, y_dev)
-            if params['patience'] != 0:
-                vals.append(val_acc)
-                vals = vals[1:]
-                max_in = np.argmax(vals)
-                print("val acc argmax {1} : list is : {0}".format(
-                    vals, max_in))
-                if max_in == 0:
-                    print("Stopping because my patience has reached its limit.")
-                    break
-            if iter_num % 5 == 0:
-                res = evaluate_neuralnet(
-                    lstm_output, x_dev, mask_dev, y_dev, strict=True)
-        except IOError as e:
-            if e.errno != errno.EINTR:
-                raise
-            else:
-                print(" EINTR ERROR CAUGHT. YET AGAIN ")
 
-    print("Final Validation eval")
+    # perform training until the defined termination condition has been reached
+    if params['epochs'] == 0 and params['patience'] == 0:
+        # if epochs are 0 and patience is 0, the training can't end, so don't start it
+        sl.error("Aborting training. Both 'epochs' and 'patience' are set to 0, so the training would have no termination condition.")
+    else:
+        # train until the desired number of epochs is reached or until the patience runs out
+        iter_num = 1
+        while True:
+            perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches)
+            if params['epochs'] > 0 and iter_num >= params['epochs']:
+                sl.info("Stopping because the final epoch (epoch {0}) has been reached".format(params['epochs']))
+                break
+            elif params['patience'] != 0:
+                patience_has_ended, vals = check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals)
+                if patience_has_ended:
+                    sl.info("Stopping because my patience has reached its limit.")
+                    break
+            
+            iter_num += 1
+
+    sl.info("Final Validation eval")
     evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
 
+
+def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches):
+    try:
+        iter_cost = 0.0
+        iter_acc = 0.0
+        iter_cost_regularization = 0.0
+        sl.info(('Iteration number : {0}'.format(iter_num)))
+        for x_i, m_i, y_i in tqdm(preprocess.iterate_minibatches(x_train, mask_train, y_train, params['batch-size']), total=num_batches, leave=False):
+            train(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
+                'float32'), y_i.astype('float32'), m_i.astype('float32'))
+            iter_cost += compute_cost(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
+                'float32'), y_i.astype('float32'), m_i.astype('float32'))
+            iter_acc += compute_acc(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
+                'float32'), y_i.astype('float32'), m_i.astype('float32'))
+            iter_cost_regularization += compute_cost_regularization()
+
+        sl.info(('TRAINING : Accuracy = {0}'.format(iter_acc / num_batches)))
+        sl.info(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
+            iter_cost / num_batches, iter_cost_regularization / num_batches, (iter_cost + iter_cost_regularization) / num_batches)))
+        # if iter_num % 5 == 0:
+            # TODO: res is currently not used
+            # res = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
+    except IOError as e:
+        if e.errno != errno.EINTR:
+            raise
+        else:
+            sl.error(" EINTR ERROR CAUGHT. YET AGAIN ")
+
+def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals):
+    patience_has_ended = False
+    try:
+        if params['patience-mode'] != 0:
+            val_acc, _ = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, verbose=False)
+        else:
+            val_acc = callback_NN(compute_cost, compute_acc, x_dev, mask_dev, y_dev)
+        vals.append(val_acc)
+        vals = vals[1:]
+        max_in = np.argmax(vals)
+        sl.info("val acc argmax {1} : list is : {0}".format(
+            vals, max_in))
+        if max_in == 0:
+            patience_has_ended = True
+    except IOError as e:
+        if e.errno != errno.EINTR:
+            raise
+        else:
+            sl.info(" EINTR ERROR CAUGHT. YET AGAIN ")
+    return patience_has_ended, vals
 
 def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
     num_valid_batches = float(sum(1 for _ in preprocess.iterate_minibatches(
         X_test, mask_test, y_test, params['batch-size'])))
-    print(('num_valid_batches {0}'.format(num_valid_batches)))
+    sl.info(('num_valid_batches {0}'.format(num_valid_batches)))
     sl.info('Executing validation Callback')
     val_loss = 0.0
     val_acc = 0.0
@@ -109,7 +138,7 @@ def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
             'float32'), y_i.astype('float32'), m_i.astype('float32'))
         val_acc += compute_acc(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
             'float32'), y_i.astype('float32'), m_i.astype('float32'))
-    print(('VALIDATION : acc = {0} loss = {1}'.format(
+    sl.info(('VALIDATION : acc = {0} loss = {1}'.format(
         val_acc / num_valid_batches, val_loss / num_valid_batches)))
     return val_acc / num_valid_batches
 
@@ -120,7 +149,7 @@ def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, stri
     if z_test == None:
         sl.info('z_test not provided. Using mask vector as a placeholder')
         z_test = mask_test
-    print(('Mask len test', len(mask_test)))
+    sl.info(('Mask len test', len(mask_test)))
     predicted = []
     predicted_sent = []
     label = []
@@ -205,14 +234,14 @@ def driver(worker, xxx_todo_changeme):
         _, results = evaluate_neuralnet(lstm_output, np.concatenate([X[test_i].astype(
             'float32'), U[test_i]], axis=2), Mask[test_i], Y[test_i], Z[test_i], strict=True, verbose=False)
     else:
-        print("Final evalution for this fold on testing set")
+        sl.info("Final evalution for this fold on testing set")
         _, results = evaluate_neuralnet(lstm_output, np.concatenate([X[test_i].astype(
             'float32'), U[test_i]], axis=2), Mask[test_i], Y[test_i], Z[test_i], strict=True, verbose=True)
     return results
 
 
 def store_response(o, l, p, filename='response.pkl'):
-    print("Storing responses in {0}".format(filename))
+    sl.info("Storing responses in {0}".format(filename))
     pickle.dump((params, o, l, p), open(filename, 'wb'))
 
 
@@ -229,17 +258,17 @@ def cross_validation_run():
     predicted_sent = []
     original_sent = []
     for worker in range(len(splits)):
-        print("########### Cross Validation run : {0}".format(worker))
+        sl.info("########### Cross Validation run : {0}".format(worker))
         o, l, p = driver(worker, splits[worker])
         label_sent += l
         predicted_sent += p
         original_sent += o
-    print("#######################VALIDATED SET ########")
+    sl.info("#######################VALIDATED SET ########")
     flat_label = [word for sentenc in label_sent for word in sentenc]
     flat_predicted = [word for sentenc in predicted_sent for word in sentenc]
     eval_metrics.get_Approx_Metrics(
         flat_label, flat_predicted, preMsg='NN_VALIDATION:', flat_list=True)
-    print("STRICT ---")
+    sl.info("STRICT ---")
     eval_metrics.get_Exact_Metrics(label_sent, predicted_sent)
     if params['error-analysis'] != 'None':
         store_response(original_sent, label_sent,
@@ -320,6 +349,6 @@ def rnn_train(dataset, config_params, vocab, umls_vocab):
         if e.errno != errno.EINTR:
             raise
         else:
-            print(" EINTR ERROR CAUGHT. YET AGAIN ")
+            sl.error(" EINTR ERROR CAUGHT. YET AGAIN ")
     sl.info('Using the parameters:\n {0}'.format(json.dumps(params, indent=2)))
     return (o, l, p)

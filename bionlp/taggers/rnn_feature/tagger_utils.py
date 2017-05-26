@@ -227,7 +227,7 @@ def encode_words(tagged_data, entire_note, params, vocab):
             w2i = {word: i + 1 for i, word in enumerate(list(v_set))}
             w2i['OOV_CHAR'] = 0
         t2i = {word: i for i, word in enumerate(list(t_set))}
-    # TODO understand sanitiy check, it failed when running with the sample data
+    # TODO understand sanity check, it failed when running with the sample data
     # logger.info('embedding sanity check (should be a number >1):{0}'.format(w2i['is']))
     X = [None] * len(tagged_data)
     Y = [None] * len(tagged_data)
@@ -243,7 +243,7 @@ def encode_words(tagged_data, entire_note, params, vocab):
         if 'trainable' in params and params['trainable'] == False and 'noeval' in params and params['noeval'] == True:
             y = [ix % label_count for ix,
                  (word, label) in enumerate(tagged_data[i])]
-            # trick to make sure that y dimesions are same for deployement.
+            # trick to make sure that y dimensions are same for deployment.
             # This is needed, because we use y_in multiple times while
             # constructing the symbolic functions
         else:
@@ -257,6 +257,8 @@ def encode_words(tagged_data, entire_note, params, vocab):
 
 
 def load_data(dataset, params, nb_words=None, test_split=0.2, entire_note=False, vocab=None):
+    # TODO: nb_words is not used; find out what it represents, and remove this here variable
+    # TODO: test_split is not used; find out where the test split is calculated instead, and remove this here variable
     original_tokens = sum([sum([len(sente_) for sente_ in doc_])
                            for doc_ in dataset])
     logger.info('original token {0}'.format(dataset[0][0][0]))
