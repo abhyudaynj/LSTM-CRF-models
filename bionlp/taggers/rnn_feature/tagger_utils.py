@@ -123,31 +123,24 @@ def trim_tags(tagged_data):
                           for x, y in tagged_data[i]]
     return tagged_data
 
-def get_regular_or_capitalized_embeddings(w2i, i2w, mdl, params):
+def get_regular_or_capitalized_embeddings(w2i, mdl, params):
     embedding_vector_size = params['emb1_size']
     embeddings = []
-    for i in range(len(w2i)):
-        term_emb = None
-        if i in i2w:
-            regular_term = str(i2w[i])
-            capitalized_term = regular_term.capitalize()
-            if regular_term in mdl:
-                term_emb = mdl[regular_term]
-            elif capitalized_term in mdl:
-                term_emb = mdl[capitalized_term]
-
-        if term_emb == None:
+    for regular_term in w2i:
+        if regular_term in mdl:
+            term_emb = mdl[regular_term]
+        elif regular_term.capitalize() in mdl:
+            term_emb = mdl[regular_term.capitalize()]
+        else:
             term_emb = np.zeros(embedding_vector_size,)
-
         embeddings.append(term_emb)
     return np.array(embeddings)
 
-def create_vocab_output_files(emb_i, i2w, zero_vectors_out_file, nonzero_vectors_out_file):
+def compare_model_to_training_vocab(emb_i, i2w, zero_vectors_out_file, nonzero_vectors_out_file):
     with open(zero_vectors_out_file, "w") as zero_f:
         with open(nonzero_vectors_out_file, "w") as nonzero_f:
-            for i in range(len(emb_i)):
+            for i, vec in enumerate(emb_i):
                 term_is_nonzero = False
-                vec = emb_i[i]
                 term = i2w[i]
                 for elem in vec:
                     if elem != 0.:
@@ -160,7 +153,6 @@ def create_vocab_output_files(emb_i, i2w, zero_vectors_out_file, nonzero_vectors
 
 
 def get_embedding_weights(w2i, params):
-    i2w = {i: word for word, i in w2i.items()}
     # TODO understand sanitiy check, it failed when running with the sample data
     # logger.info('embedding sanity check (should be a word) :{0}'.format(i2w[12]))
     if params['word2vec'] == 1 and params['trainable']:
@@ -181,7 +173,7 @@ def get_embedding_weights(w2i, params):
         # be reset later.
         mdl = {}
         embedding_vector_size = params['emb1_size']
-    emb_i = get_regular_or_capitalized_embeddings(w2i, i2w, mdl, params)
+    emb_i = get_regular_or_capitalized_embeddings(w2i, mdl, params)
 
     return emb_i
 
