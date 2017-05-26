@@ -94,6 +94,8 @@ def default_model_arguments(parser):
                         help='Should the word2vec vectors be further trained. default 1')
     parser.add_argument('-e2', '--emb2', dest='emb2', type=int, default=0,
                         help='Number of dimension of extra embedding layer. off if 0. default is 0')
+    parser.add_argument('-e1s', '--emb1_size', dest='emb1_size', type=int, default=200,
+                        help='Dimensionality of the word2vec vectors, if no model is given to initialize the word2vec vectors with. default 200')
 
     return parser
 

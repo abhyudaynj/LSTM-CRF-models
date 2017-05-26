@@ -123,9 +123,36 @@ def trim_tags(tagged_data):
                           for x, y in tagged_data[i]]
     return tagged_data
 
+def get_regular_or_capitalized_embeddings(w2i, mdl, params):
+    embedding_vector_size = params['emb1_size']
+    embeddings = []
+    for regular_term in w2i:
+        if regular_term in mdl:
+            term_emb = mdl[regular_term]
+        elif regular_term.capitalize() in mdl:
+            term_emb = mdl[regular_term.capitalize()]
+        else:
+            term_emb = np.zeros(embedding_vector_size,)
+        embeddings.append(term_emb)
+    return np.array(embeddings)
+
+def compare_model_to_training_vocab(emb_i, i2w, zero_vectors_out_file, nonzero_vectors_out_file):
+    with open(zero_vectors_out_file, "w") as zero_f:
+        with open(nonzero_vectors_out_file, "w") as nonzero_f:
+            for i, vec in enumerate(emb_i):
+                term_is_nonzero = False
+                term = i2w[i]
+                for elem in vec:
+                    if elem != 0.:
+                        term_is_nonzero = True
+                        break
+                if term_is_nonzero:
+                    nonzero_f.write(term + "\n")
+                else:
+                    zero_f.write(term + "\n")
+
 
 def get_embedding_weights(w2i, params):
-    i2w = {i: word for word, i in w2i.items()}
     # TODO understand sanitiy check, it failed when running with the sample data
     # logger.info('embedding sanity check (should be a word) :{0}'.format(i2w[12]))
     if params['word2vec'] == 1 and params['trainable']:
@@ -133,17 +160,21 @@ def get_embedding_weights(w2i, params):
             mdl = gensim.models.KeyedVectors.load_word2vec_format(
                 params['dependency']['mdl'], binary=True)
             logger.info('{0},{1}'.format(mdl['is'].shape, len(w2i)))
+            # read the embedding vector size from the given model
+            embedding_vector_size = mdl.syn0.shape[1]
         else:
             logger.warning(
                 'No word2vec model binary file found. Loading random weight vectors instead.')
             mdl = {}
+            embedding_vector_size = params['emb1_size']
     else:
         # Use random initialization for embeddings, if word2vec option is 0 or
         # if this is a deploy run. In deploy runs the relevant embeddings will
         # be reset later.
         mdl = {}
-    emb_i = np.array([mdl[str(i2w[i])] if i in i2w and str(
-        i2w[i]) in mdl else np.zeros(200,) for i in range(len(w2i))])
+        embedding_vector_size = params['emb1_size']
+    emb_i = get_regular_or_capitalized_embeddings(w2i, mdl, params)
+
     return emb_i
 
 
