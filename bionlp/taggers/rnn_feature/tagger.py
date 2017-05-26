@@ -27,6 +27,7 @@ setup_NN = {}
 sl = logging.getLogger(__name__)
 
 
+# TODO: worker is not used
 def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, compute_acc, compute_cost_regularization, worker):
     if params['patience'] != 0:
         vals = [0.0] * params['patience']
@@ -51,50 +52,79 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
     mask_dev = Mask[dev_i]
     num_batches = float(sum(1 for _ in preprocess.iterate_minibatches(
         x_train, mask_train, y_train, params['batch-size'])))
-    for iter_num in range(params['epochs']):
-        try:
-            iter_cost = 0.0
-            iter_acc = 0.0
-            iter_cost_regularization = 0.0
-            print(('Iteration number : {0}'.format(iter_num + 1)))
-            for x_i, m_i, y_i in tqdm(preprocess.iterate_minibatches(x_train, mask_train, y_train, params['batch-size']), total=num_batches, leave=False):
-                train(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
-                    'float32'), y_i.astype('float32'), m_i.astype('float32'))
-                iter_cost += compute_cost(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
-                    'float32'), y_i.astype('float32'), m_i.astype('float32'))
-                iter_acc += compute_acc(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
-                    'float32'), y_i.astype('float32'), m_i.astype('float32'))
-                iter_cost_regularization += compute_cost_regularization()
-            print(('TRAINING : Accuracy = {0}'.format(iter_acc / num_batches)))
-            print(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
-                iter_cost / num_batches, iter_cost_regularization / num_batches, (iter_cost + iter_cost_regularization) / num_batches)))
-            if params['patience-mode'] != 0:
-                val_acc, _ = evaluate_neuralnet(
-                    lstm_output, x_dev, mask_dev, y_dev, strict=True, verbose=False)
-            else:
-                val_acc = callback_NN(
-                    compute_cost, compute_acc, x_dev, mask_dev, y_dev)
-            if params['patience'] != 0:
-                vals.append(val_acc)
-                vals = vals[1:]
-                max_in = np.argmax(vals)
-                print("val acc argmax {1} : list is : {0}".format(
-                    vals, max_in))
-                if max_in == 0:
+
+    # perform training until the defined termination condition has been reached
+    if params['epochs'] == 0 and params['patience'] == 0:
+        # if epochs are 0 and patience is 0, the training can't end, so don't start it
+        sl.error("Aborting training. Both 'epochs' and 'patience' are set to 0, so the training would have no termination condition.")
+
+    else:
+        # train until the desired number of epochs is reached or until the patience runs out
+        iter_num = 1
+        while True:
+            perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches)
+            if params['epochs'] > 0 and iter_num >= params['epochs']:
+                print("Stopping because the final epoch (epoch {0}) has been reached".format(params['epochs']))
+                break
+            elif params['patience'] != 0:
+                patience_has_ended, vals = check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals)
+                if patience_has_ended:
                     print("Stopping because my patience has reached its limit.")
                     break
-            if iter_num % 5 == 0:
-                res = evaluate_neuralnet(
-                    lstm_output, x_dev, mask_dev, y_dev, strict=True)
-        except IOError as e:
-            if e.errno != errno.EINTR:
-                raise
-            else:
-                print(" EINTR ERROR CAUGHT. YET AGAIN ")
+            
+            iter_num += 1
 
     print("Final Validation eval")
     evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
 
+
+def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches):
+    try:
+        iter_cost = 0.0
+        iter_acc = 0.0
+        iter_cost_regularization = 0.0
+        print(('Iteration number : {0}'.format(iter_num)))
+        for x_i, m_i, y_i in tqdm(preprocess.iterate_minibatches(x_train, mask_train, y_train, params['batch-size']), total=num_batches, leave=False):
+            train(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
+                'float32'), y_i.astype('float32'), m_i.astype('float32'))
+            iter_cost += compute_cost(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
+                'float32'), y_i.astype('float32'), m_i.astype('float32'))
+            iter_acc += compute_acc(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
+                'float32'), y_i.astype('float32'), m_i.astype('float32'))
+            iter_cost_regularization += compute_cost_regularization()
+
+        print(('TRAINING : Accuracy = {0}'.format(iter_acc / num_batches)))
+        print(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
+            iter_cost / num_batches, iter_cost_regularization / num_batches, (iter_cost + iter_cost_regularization) / num_batches)))
+        # if iter_num % 5 == 0:
+            # TODO: res is currently not used
+            # res = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
+    except IOError as e:
+        if e.errno != errno.EINTR:
+            raise
+        else:
+            print(" EINTR ERROR CAUGHT. YET AGAIN ")
+
+def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals):
+    patience_has_ended = False
+    try:
+        if params['patience-mode'] != 0:
+            val_acc, _ = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, verbose=False)
+        else:
+            val_acc = callback_NN(compute_cost, compute_acc, x_dev, mask_dev, y_dev)
+        vals.append(val_acc)
+        vals = vals[1:]
+        max_in = np.argmax(vals)
+        print("val acc argmax {1} : list is : {0}".format(
+            vals, max_in))
+        if max_in == 0:
+            patience_has_ended = True
+    except IOError as e:
+        if e.errno != errno.EINTR:
+            raise
+        else:
+            print(" EINTR ERROR CAUGHT. YET AGAIN ")
+    return patience_has_ended, vals
 
 def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
     num_valid_batches = float(sum(1 for _ in preprocess.iterate_minibatches(
