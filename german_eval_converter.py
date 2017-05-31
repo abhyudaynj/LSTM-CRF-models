@@ -20,7 +20,7 @@ def write_files(sentences, annotations, filename):
         json.dump(annotations, json_file, ensure_ascii=False)
 
 
-def create_text_files():
+def create_text_files(label_blacklist=None):
     file, ext = os.path.splitext(SOURCE_FILE)
     sentences = []
     sentence = ''
@@ -54,26 +54,27 @@ def create_text_files():
                 sentences.append(sentence)  #
                 char_count += len(sentence) + 1 #
                 if len(sentences) == BATCH_SIZE:
+                    labels = filter_labels(labels, label_blacklist)
                     write_files(sentences, labels, file + '_' + str(batch_id))
                     sentences = []
                     labels = []
                     char_count = 0
                     batch_id += 1
 
-    sentences.append(sentence)  #
+    sentences.append(sentence)
+
+    labels = filter_labels(labels, label_blacklist)
     write_files(sentences, labels, file + '_' + str(batch_id))
 
-def remove_rare_tags(blacklist):
-    for filename in os.listdir(TARGET_DIR):
-        new_anns = []
-        name, ext = os.path.splitext(filename)
-        if ext == '.json':
-            anns = json.load(open(os.path.join(TARGET_DIR, filename), 'r'))
-            for tag_array in anns:
-                if tag_array[3] not in blacklist:
-                    new_anns.append(tag_array)
-            json.dump(new_anns, open(os.path.join(TARGET_DIR, filename), 'w'), ensure_ascii=False)
 
+def filter_labels(labels, label_blacklist=None):
+    if label_blacklist is None:
+        return labels
+    new_labels = []
+    for label_obj in labels:
+        if label_obj[3] not in label_blacklist:
+            new_labels.append(label_obj)
+    return new_labels
 
 
 if __name__ == '__main__':
@@ -82,6 +83,7 @@ if __name__ == '__main__':
                         help='A file the contains the comma-separated tags to be excluded from the converted data')
     args = vars(parser.parse_args())
 
+    filter_list = []
     filter_list_file = args['filter-file']
     if filter_list_file is not None:
         if not os.path.isfile(filter_list_file):
@@ -89,11 +91,8 @@ if __name__ == '__main__':
         else:
             fh = open(filter_list_file, 'r')
             filter_list = [tag.strip() for tag in fh.read().split(',')]
-            create_text_files()
-            print(filter_list)
-            remove_rare_tags(filter_list)
-    else:
-        create_text_files()
+
+    create_text_files(filter_list)
 
 
 
