@@ -9,7 +9,7 @@ import argparse
 
 SOURCE_DIR = "data/sources/GermEval2014_complete_data"
 TARGET_DIR = "data/converted/GermEval2014_complete_data/datasets"
-SOURCE_FILE = "NER-de-dev.tsv"
+SOURCE_FILE = "NER-de-train.tsv"
 BATCH_SIZE = 1000
 
 
@@ -77,6 +77,24 @@ def filter_labels(labels, label_blacklist=None):
     return new_labels
 
 
+def print_label_stats(skip_intermediate=True):
+    label_dict = {}
+    with open(os.path.join(SOURCE_DIR, SOURCE_FILE), 'r') as f:
+        for k, txt in enumerate(f.readlines()):
+            if txt[0] == '#':  # a new sentence begins
+                sentence = ''
+            elif len(txt) > 1:
+                txt_list = txt.split('\t')
+                label = txt_list[2]
+                if skip_intermediate and label[0:2] == 'I-':
+                    continue
+                if label in label_dict:
+                    label_dict[label] += 1
+                else:
+                    label_dict[label] = 1
+    print(json.dumps(label_dict, sort_keys=True, indent=4))
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--tag-filter-file', dest='filter-file',type=str, default=None,
@@ -86,11 +104,11 @@ if __name__ == '__main__':
     filter_list = []
     filter_list_file = args['filter-file']
     if filter_list_file is not None:
-        if not os.path.isfile(filter_list_file):
-            print('no such file', filter_list_file)
-        else:
+        if os.path.isfile(filter_list_file):
             fh = open(filter_list_file, 'r')
             filter_list = [tag.strip() for tag in fh.read().split(',')]
+        else:
+            print('No such file', filter_list_file, '. Ignoring filter list')
 
     create_text_files(filter_list)
 
