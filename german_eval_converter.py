@@ -5,10 +5,11 @@
 
 import os
 import json
+import argparse
 
 SOURCE_DIR = "data/sources/GermEval2014_complete_data"
 TARGET_DIR = "data/converted/GermEval2014_complete_data/datasets"
-SOURCE_FILE = "NER-de-train.tsv"
+SOURCE_FILE = "NER-de-dev.tsv"
 BATCH_SIZE = 1000
 
 
@@ -34,9 +35,6 @@ def create_text_files():
             elif len(txt) > 1:
                 txt_list = txt.split('\t')
                 word = txt_list[1]
-                # if word == '"':  # ignore quotation marks
-                #     continue
-
                 start = char_count + len(sentence) + 1
                 sentence += ' ' + word
                 end = char_count + len(sentence)
@@ -65,5 +63,37 @@ def create_text_files():
     sentences.append(sentence)  #
     write_files(sentences, labels, file + '_' + str(batch_id))
 
+def remove_rare_tags(blacklist):
+    for filename in os.listdir(TARGET_DIR):
+        new_anns = []
+        name, ext = os.path.splitext(filename)
+        if ext == '.json':
+            anns = json.load(open(os.path.join(TARGET_DIR, filename), 'r'))
+            for tag_array in anns:
+                if tag_array[3] not in blacklist:
+                    new_anns.append(tag_array)
+            json.dump(new_anns, open(os.path.join(TARGET_DIR, filename), 'w'), ensure_ascii=False)
+
+
+
 if __name__ == '__main__':
-    create_text_files()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--tag-filter-file', dest='filter-file',type=str, default=None,
+                        help='A file the contains the comma-separated tags to be excluded from the converted data')
+    args = vars(parser.parse_args())
+
+    filter_list_file = args['filter-file']
+    if filter_list_file is not None:
+        if not os.path.isfile(filter_list_file):
+            print('no such file', filter_list_file)
+        else:
+            fh = open(filter_list_file, 'r')
+            filter_list = [tag.strip() for tag in fh.read().split(',')]
+            create_text_files()
+            print(filter_list)
+            remove_rare_tags(filter_list)
+    else:
+        create_text_files()
+
+
+
