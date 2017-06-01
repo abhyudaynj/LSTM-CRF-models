@@ -47,7 +47,9 @@ def default_arguments():
     parser.add_argument('-ev', '--extra-vocab', dest='extra-vocab', type=int, default=0,
                         help='Enable extra vocabulary from different corpuses provided in the depedency.json file. default is 0. 0:off 1: extra file -1: All available')
     parser.add_argument('-model', '--model', dest='model', type=str, default='None',
-                        help='location of parameter pickle  output in a file. default None')
+                        help='location of parameter pickle output in a file. default None')
+    parser.add_argument('-si', '--save-interval', dest='save-interval', type=int, default='20',
+                        help='Time interval in minutes after which the trained network parameters are automatically saved to the given model file. If 0, no automatic saving takes place, but the parameters are still saved to the model file after training has concluded. Default 20.') 
     parser.add_argument('-bio', '--bio', dest='bio', type=int,
                         default=0, help='Add BIO tags for CRF. default 0, off')
     parser.add_argument('-err', '--error-analysis', dest='error-analysis', type=str,
