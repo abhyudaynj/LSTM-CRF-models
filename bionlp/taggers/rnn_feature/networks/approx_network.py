@@ -115,11 +115,6 @@ def setup_NN(worker, x_in, u_in, mask_in, y_in, params, numTags, emb_w):
         'Only cross entropy loss is calculated for Approx-CRF model. I will not calculate any Log likelihood')
     outp, eval_out, params_approx, approx_regularization, final_layers = constructApproximations(
         crf_layer, pairwise, t_out, numTags, params, x_in, u_in, y_in, mask_in, l_in, l_mask, l_u_in, normalization=True)
-    if params['trainable'] is False:
-        logger.info(
-            'Trainable is off. Loading Network weights from {0}'.format(params['model']))
-        nn_v_d = pickle.load(open(params['model'], 'rb'), encoding='latin1')
-        lasagne.layers.set_all_param_values(final_layers, nn_v_d['nn'])
 
     crf_output = theano.function(
         [l_in.input_var, l_u_in.input_var, l_mask.input_var], eval_out)
