@@ -20,6 +20,7 @@ from sklearn.utils import shuffle as sk_shuffle
 import theano.tensor as T
 import theano
 import datetime
+import os
 
 params = {}
 X = U = Y = Z = Mask = i2t = t2i = w2i = i2w = splits = numTags = emb_w = []
@@ -234,14 +235,21 @@ def driver(worker, xxx_todo_changeme):
                     Mask[0:params['batch-size']], Y[0:params['batch-size']], params, numTags, emb_w)
     crf_output, lstm_output, train, compute_cost, compute_acc, compute_cost_regularization = netd['crf_output'], netd[
         'lstm_output'], netd['train'], netd['compute_cost'], netd['compute_acc'], netd['compute_cost_regularization']
+
+    if params['model']:
+        net_params_filename = params['model']
+        if os.path.isfile(net_params_filename):
+            sl.info('Loading Network weights from {0}'.format(net_params_filename))
+            nn_v_d = pickle.load(open(params['model'], 'rb'), encoding='latin1')
+            lasagne.layers.set_all_param_values(netd['final_layers'], nn_v_d['nn'])
+        else:
+            sl.info("Can't load Network weights from {0}; continuing with random weights".format(net_params_filename))
+    else:
+        sl.info('No file to load Network weights from has been given')
+
     if 'trainable' in params and params['trainable'] == True:
         train_NN(train, crf_output, lstm_output, train_i, compute_cost,
                  compute_acc, compute_cost_regularization, worker, netd)
-    else:
-        sl.info('Trainable is off. Loading Network weights from {0}'.format(
-            params['model']))
-        nn_v_d = pickle.load(open(params['model'], 'rb'), encoding='latin1')
-        lasagne.layers.set_all_param_values(netd['final_layers'], nn_v_d['nn'])
 
     save_net_params_if_necessary(netd, params)
 
