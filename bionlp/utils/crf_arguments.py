@@ -115,7 +115,7 @@ def crf_model_arguments():
     parser.add_argument('-mode', '--mode', dest='mode', type=int, default=1,
                         help='Mode of structured inference. Default is 1 : Modeling unary and binary potentials with neural nets. 1: Approximating Messages -1 : Only modeling the unary potential with neural nets.')
     parser.add_argument('-mo', '--monitoring-file', type=str, dest='monitoring-file', default='None',
-                        help='Path to the file where monitoring during training will be stored')
+                        help='Path to the file to store monitoring during training. Default is None (no monitoring)')
     args = parser.parse_args()
     if args.input == 'None':
         parser.error("Input is a required argument")

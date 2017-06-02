@@ -1,8 +1,8 @@
 """
 I wanted to create a Singleton for data storage, but several discussions in forums suggest that the
 'module-approach' is more pythonic:
-https://stackoverflow.com/questions/31875/is-there-a-simple-elegant-way-to-define-singletons/31887#31887
-https://stackoverflow.com/questions/6841853/python-accessing-module-scope-vars/6842257#6842257
+https://stackoverflow.com/a/31887/2191154
+https://stackoverflow.com/a/6842257/2191154
 """
 
 TYPE_VALIDATION = 'validation'
