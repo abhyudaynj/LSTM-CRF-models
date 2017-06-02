@@ -8,6 +8,7 @@ import random
 import json
 np.random.seed(1337)  # for reproducibility
 import bionlp.utils.data_utils as data_utils
+import bionlp.utils.monitoring as monitor
 import errno
 from nltk.metrics import ConfusionMatrix
 import itertools
@@ -85,6 +86,8 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
                     save_net_params_if_necessary(netd, params)
                     time_of_last_save = datetime.datetime.now()
             iter_num += 1
+            if params['monitoring-file'] != 'None':
+                update_monitoring(params['monitoring-file'])
 
     sl.info("Final Validation eval")
     evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
@@ -105,9 +108,18 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
                 'float32'), y_i.astype('float32'), m_i.astype('float32'))
             iter_cost_regularization += compute_cost_regularization()
 
-        sl.info(('TRAINING : Accuracy = {0}'.format(iter_acc / num_batches)))
+        acc, loss_net_crf, loss_crf, loss_tot = \
+            np.array([iter_acc, iter_cost, iter_cost_regularization, iter_cost + iter_cost_regularization])/num_batches
+        monitor.add_iteration_data(monitor.TYPE_TRAINING,
+                                   {
+                                       monitor.KEY_ACC: acc,
+                                       monitor.KEY_LOSS_NET_CRF: loss_net_crf,
+                                       monitor.KEY_LOSS_CRF: loss_crf,
+                                       monitor.KEY_LOSS_TOT: loss_tot
+                                   })
+        sl.info(('TRAINING : Accuracy = {0}'.format(acc)))
         sl.info(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
-            iter_cost / num_batches, iter_cost_regularization / num_batches, (iter_cost + iter_cost_regularization) / num_batches)))
+            loss_net_crf, loss_crf, loss_tot)))
         # if iter_num % 5 == 0:
             # TODO: res is currently not used
             # res = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
@@ -116,6 +128,7 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
             raise
         else:
             sl.error(" EINTR ERROR CAUGHT. YET AGAIN ")
+
 
 def save_net_params_if_necessary(netd, params):
     if 'final_layers' in netd and params['model'] is not 'None' and params['trainable'] is True:
@@ -127,18 +140,22 @@ def save_net_params_if_necessary(netd, params):
                      'w2i': w2i, 't2i': t2i, 'umls_vocab': umls_v}
         pickle.dump(nn_packet, open(params['model'], 'wb'))
 
+
 def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals):
     patience_has_ended = False
     try:
         if params['patience-mode'] != 0:
+            val_loss = 0
             val_acc, _ = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, verbose=False)
         else:
-            val_acc = callback_NN(compute_cost, compute_acc, x_dev, mask_dev, y_dev)
+            val_acc, val_loss = callback_NN(compute_cost, compute_acc, x_dev, mask_dev, y_dev)
         vals.append(val_acc)
         vals = vals[1:]
         max_in = np.argmax(vals)
-        sl.info("val acc argmax {1} : list is : {0}".format(
-            vals, max_in))
+        sl.info("val acc argmax {1} : list is : {0}".format(vals, max_in))
+        monitor.add_iteration_data(
+            monitor.TYPE_VALIDATION, {monitor.KEY_ACC: val_acc, monitor.KEY_LOSS_TOT: val_loss}
+        )
         if max_in == 0:
             patience_has_ended = True
     except IOError as e:
@@ -147,6 +164,7 @@ def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, 
         else:
             sl.info(" EINTR ERROR CAUGHT. YET AGAIN ")
     return patience_has_ended, vals
+
 
 def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
     num_valid_batches = float(sum(1 for _ in preprocess.iterate_minibatches(
@@ -163,7 +181,7 @@ def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
             'float32'), y_i.astype('float32'), m_i.astype('float32'))
     sl.info(('VALIDATION : acc = {0} loss = {1}'.format(
         val_acc / num_valid_batches, val_loss / num_valid_batches)))
-    return val_acc / num_valid_batches
+    return val_acc / num_valid_batches, val_loss / num_valid_batches
 
 
 def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, strict=False, verbose=True):
@@ -266,6 +284,10 @@ def driver(worker, xxx_todo_changeme):
 def store_response(o, l, p, filename='response.pkl'):
     sl.info("Storing responses in {0}".format(filename))
     pickle.dump((params, o, l, p), open(filename, 'wb'))
+
+
+def update_monitoring(filename='monitor.pkl'):
+    pickle.dump(monitor.get_data(), open(filename, 'wb'))
 
 
 def single_run():
