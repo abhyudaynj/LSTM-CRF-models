@@ -1,6 +1,7 @@
 from train import main
 import datetime
 from bionlp.utils.crf_arguments import crf_model_arguments
+import bionlp.evaluate.evaluation as ev
 
 
 if __name__ == '__main__':
@@ -14,4 +15,5 @@ if __name__ == '__main__':
     today = datetime.date.today().isoformat()
     for idx in range(10):
         config_params['monitoring-file'] = "data/logs/monitor_{0}_{1}.pkl".format(today, idx)
+        ev.final_eval_out_file = "data/logs/eval_{0}_{1}.txt".format(today, idx)
         main(config_params)
