@@ -1,6 +1,7 @@
 from train import main
 import datetime
 from bionlp.utils.crf_arguments import crf_model_arguments
+import bionlp.utils.monitoring as mo
 
 
 if __name__ == '__main__':
@@ -14,4 +15,5 @@ if __name__ == '__main__':
     today = datetime.date.today().isoformat()
     for idx in range(10):
         config_params['monitoring-file'] = "data/logs/monitor_{0}_{1}.pkl".format(today, idx)
+        mo.data = mo.get_init_data()
         main(config_params)
