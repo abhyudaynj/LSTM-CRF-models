@@ -10,6 +10,8 @@ IGNORE_TAG = 'None'
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+final_eval_out_file = None
+
 
 def get_labels(label, predicted):
     labels = list(set(itertools.chain.from_iterable(label)) |
@@ -63,19 +65,23 @@ def get_Approx_Metrics(y_true, y_pred, verbose=True, preMsg='', flat_list=False)
     return avg_f1
 
 
-def get_ConfusionMatrix(true, predicted):
+def get_ConfusionMatrix(true, predicted, final_eval=False):
     # Confusion Matrix is only valid for partial evaluation.
     true_chain = list(itertools.chain.from_iterable(true))
     predicted_chain = list(itertools.chain.from_iterable(predicted))
-    print(("Confusion Matrix of combined folds (partial evaluation)\n{0}".format(
-        ConfusionMatrix(true_chain, predicted_chain))))
+    msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(
+        ConfusionMatrix(true_chain, predicted_chain))
+    print(msg)
+    if final_eval and final_eval_out_file:
+        append_message_to_final_eval_file(msg)
 
 
-def get_Exact_Metrics(true, predicted, verbose=True):
+
+def get_Exact_Metrics(true, predicted, verbose=True, final_eval=False):
     true, predicted = strip_BIO(true, predicted)
     if verbose:
         print('------------------------ Exact Metrics---------------------------')
-        get_ConfusionMatrix(true, predicted)
+        get_ConfusionMatrix(true, predicted, final_eval)
     labels = get_labels(true, predicted)
     true_positive = {label: 0 for label in labels}
     trues = {label: 0 for label in labels}
@@ -144,8 +150,13 @@ def get_Exact_Metrics(true, predicted, verbose=True):
             avg_precision += float(trues[l]) * float(precision)
             num_candidates += trues[l]
         if verbose:
-            print(("The tag \'{0}\' has {1} elements and recall,precision,f1 ={2},{3}, {4}".format(
-                l, trues[l], recall, precision, f1)))
+            msg = "The tag \'{0}\' has {1} elements and recall,precision,f1 ={2},{3}, {4}".format(
+                l, trues[l], recall, precision, f1)
+            print(msg)
+            if final_eval and final_eval_out_file:
+                append_message_to_final_eval_file(msg)
+
+
     if num_candidates > 0:
         avg_recall = float(avg_recall) / float(num_candidates)
         avg_precision = float(avg_precision) / float(num_candidates)
@@ -154,9 +165,18 @@ def get_Exact_Metrics(true, predicted, verbose=True):
         avg_f1 = 2.0 * float(avg_precision) * float(avg_recall) / \
             (float(avg_recall) + float(avg_precision))
     if verbose:
-        print(("All medical tags collectively have {0} elements and recall,precision,f1 ={1},{2}, {3}".format(
-            num_candidates, avg_recall, avg_precision, avg_f1)))
+        msg = "All medical tags collectively have {0} elements and recall,precision,f1 ={1},{2}, {3}".format(
+            num_candidates, avg_recall, avg_precision, avg_f1)
+        print(msg)
+        if final_eval and final_eval_out_file:
+            append_message_to_final_eval_file(msg)
+
     return avg_f1
+
+
+def append_message_to_final_eval_file(message):
+    with open(final_eval_out_file, 'a') as f_out:
+        f_out.write(message + '\n')  
 
 
 def evaluator(l, p, metric_func=get_Exact_Metrics):
