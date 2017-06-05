@@ -13,6 +13,8 @@ KEY_LOSS_TOT = 'loss_total'
 KEY_LOSS_CRF = 'loss_crf'
 KEY_LOSS_NET_CRF = 'loss_net_crf'
 
+data = {}
+
 
 def get_data_keys():
     return [
@@ -37,14 +39,15 @@ class MonitoringDataObject(object):
         return self.__data
 
 
-data = {
-    TYPE_VALIDATION: MonitoringDataObject(),
-    TYPE_TRAINING: MonitoringDataObject()
-}
+def get_init_data():
+    return {
+        TYPE_VALIDATION: MonitoringDataObject(),
+        TYPE_TRAINING: MonitoringDataObject()
+    }
 
 
 def add_iteration_data(data_type, data_dict):
-    assert data_type in data, "provided data type {0) not available".format(data_type)
+    assert data_type in data, "provided data type {0} not available".format(data_type)
     data[data_type].add_iteration_data(data_dict)
 
 
