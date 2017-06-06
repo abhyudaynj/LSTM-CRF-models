@@ -34,7 +34,7 @@ sl = logging.getLogger(__name__)
 def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, compute_acc, compute_cost_regularization, worker, netd):
     if params['patience'] != 0:
         vals = [0.0] * params['patience']
-    if params['model'] is not 'None' and params['save-interval'] is not 0:
+    if params['model'] is not 'None' and params['save-interval-mins'] is not 0:
         time_of_last_save = datetime.datetime.now()
     sl.info('Dividing the training set into {0} % training and {1} % dev set'.format(
         100 - params['dev'], params['dev']))
@@ -75,13 +75,11 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
                 if patience_has_ended:
                     sl.info("Stopping because my patience has reached its limit.")
                     break
-            if params['model'] is not 'None' and params['save-interval'] is not 0:
-                save_interval = params['save-interval']
-                time_now = datetime.datetime.now()
-                time_since_last_save = time_now - time_of_last_save
+            if params['model'] is not 'None' and params['save-interval-mins'] is not 0:
+                time_since_last_save = datetime.datetime.now() - time_of_last_save
                 mins_since_last_save = time_since_last_save.total_seconds() / 60.
                 sl.debug("Minutes since last save: %f" % mins_since_last_save)
-                if mins_since_last_save >= save_interval:
+                if mins_since_last_save >= params['save-interval-mins']:
                     sl.info("Enough time has passed; save the network parameters")
                     save_net_params_if_necessary(netd, params)
                     time_of_last_save = datetime.datetime.now()
