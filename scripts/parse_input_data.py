@@ -18,4 +18,4 @@ if __name__ == "__main__":
 
     ParserClass = getattr(importlib.import_module(parser_module), parser_class)
     parser = ParserClass()
-    parser.parse_datasets(input_dir, output_dir)
+    parser.parse_directory_content(input_dir, output_dir)

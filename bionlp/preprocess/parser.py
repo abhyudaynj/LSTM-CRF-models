@@ -6,7 +6,7 @@ from bionlp.tags import IOB2_Tag
 
 class AbstractDatasetParser(ABC):
     @abstractmethod
-    def parse_datasets(self, input_dir, output_dir):
+    def parse_directory_content(self, input_dir, output_dir):
         raise NotImplementedError
 
     @abstractmethod
@@ -15,15 +15,18 @@ class AbstractDatasetParser(ABC):
 
 
 class BratParser(AbstractDatasetParser):
+    _INPUT_FILE_EXTENSION = ".ann"
+    _OUTPUT_FILE_EXTENSION = ".json"
+
     # this is implemented in the BratParser class instead of the abstract parent class because,
     # for Brat, we only want to regard the input files with file extension .ann
-    def parse_datasets(self, input_dir, output_dir):
+    def parse_directory_content(self, input_dir, output_dir):
         # this methodology only expects files in the top level of the given input directory, not subdirs
         _, _, input_files = next(os.walk(input_dir))
         for input_file in input_files:
-            if input_file.endswith(".ann"):
+            if input_file.endswith(self._INPUT_FILE_EXTENSION):
                 input_file_abs_path = os.path.join(input_dir, input_file)
-                output_file_abs_path = os.path.join(output_dir, os.path.splitext(input_file)[0] + ".json")
+                output_file_abs_path = os.path.join(output_dir, os.path.splitext(input_file)[0] + self._OUTPUT_FILE_EXTENSION)
                 self.parse_file(input_file_abs_path, output_file_abs_path)
 
     def parse_file(self, input_file, output_file):
@@ -35,18 +38,17 @@ class BratParser(AbstractDatasetParser):
             tag_chain_tag = None
             tag_chain_id = -1
             for line in f_in.readlines():
-                cleaned_line = line.rstrip()
-                brat_index, tag_and_indices, token_value = cleaned_line.split("\t")
-                tag_string, indices = self.split_tag_and_indices(tag_and_indices)
+                brat_index, tag_and_indices, token_value = line.rstrip().split("\t")
+                tag_string, indices = tag_and_indices.split(" ", 1)
                 tag = IOB2_Tag(tag_string)
-                earliest_start_index, latest_end_index = self.get_earliest_start_and_latest_end_index(indices)
+                earliest_start_index, latest_end_index = self._get_earliest_start_and_latest_end_index(indices)
                 if IOB2_Tag.is_tag_continuation_of_beginning_tag(tag_chain_tag, tag):
                     tag_chain_end_index = latest_end_index
                     tag_chain_token_values = " ".join([tag_chain_token_values, token_value])
                 else:
                     # if a previous tag chain exists, append it to the total tags list
                     if tag_chain_tag is not None:
-                        self.append_tag_chain_to_total_list(total_tags_list, tag_chain_beginning_index,
+                        self._append_tag_chain_to_total_list(total_tags_list, tag_chain_beginning_index,
                             tag_chain_end_index, tag_chain_token_values, tag_chain_tag, tag_chain_id)
 
                     # begin new tag chain
@@ -57,14 +59,14 @@ class BratParser(AbstractDatasetParser):
                     tag_chain_id += 1
 
             # after the final line has been read, write the final tag chain into the total tags list
-            self.append_tag_chain_to_total_list(total_tags_list, tag_chain_beginning_index,
+            self._append_tag_chain_to_total_list(total_tags_list, tag_chain_beginning_index,
                             tag_chain_end_index, tag_chain_token_values, tag_chain_tag, tag_chain_id)
 
         # write the total tags list into the output file
         with open(output_file, "w", encoding="utf8") as f_out:
             json.dump(total_tags_list, f_out, ensure_ascii=False)
 
-    def append_tag_chain_to_total_list(self, total_tags_list, tag_chain_beginning_index, tag_chain_end_index, tag_chain_token_values, tag_chain_tag, tag_chain_id):
+    def _append_tag_chain_to_total_list(self, total_tags_list, tag_chain_beginning_index, tag_chain_end_index, tag_chain_token_values, tag_chain_tag, tag_chain_id):
         tag_entry = [   tag_chain_beginning_index,
                         tag_chain_end_index,
                         tag_chain_token_values,
@@ -73,11 +75,7 @@ class BratParser(AbstractDatasetParser):
                     ]
         total_tags_list.append(tag_entry)
 
-    def split_tag_and_indices(self, tag_and_indices):
-        tag, indices = tag_and_indices.split(" ", 1)
-        return tag, indices
-
-    def get_earliest_start_and_latest_end_index(self, indices):
+    def _get_earliest_start_and_latest_end_index(self, indices):
         """
         Indices can be denoted in different formats; if only a single token is tagged with a
         certain tag consecutively, the start and end indices of that tag will look as follows:
