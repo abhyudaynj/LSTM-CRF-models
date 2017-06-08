@@ -10,8 +10,6 @@ if __name__ == '__main__':
     # Required for choosing CRF network models.
     config_params['CRF_MODEL_ON'] = True
     config_params['emb1_size'] = 300
-    config_params['epochs'] = 3
-    config_params['patience'] = 10
 
     today = datetime.date.today().isoformat()
     for idx in range(10):
