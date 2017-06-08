@@ -20,6 +20,8 @@ from sklearn.metrics import f1_score
 from sklearn.utils import shuffle as sk_shuffle
 import theano.tensor as T
 import theano
+import datetime
+import os
 
 params = {}
 X = U = Y = Z = Mask = i2t = t2i = w2i = i2w = splits = numTags = emb_w = []
@@ -29,9 +31,11 @@ sl = logging.getLogger(__name__)
 
 
 # TODO: worker is not used
-def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, compute_acc, compute_cost_regularization, worker):
+def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, compute_acc, compute_cost_regularization, worker, netd):
     if params['patience'] != 0:
         vals = [0.0] * params['patience']
+    if params['model'] is not 'None' and params['save-interval-mins'] is not 0:
+        time_of_last_save = datetime.datetime.now()
     sl.info('Dividing the training set into {0} % training and {1} % dev set'.format(
         100 - params['dev'], params['dev']))
     train_i = np.copy(train_indices)
@@ -71,7 +75,14 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
                 if patience_has_ended:
                     sl.info("Stopping because my patience has reached its limit.")
                     break
-            
+            if params['model'] is not 'None' and params['save-interval-mins'] is not 0:
+                time_since_last_save = datetime.datetime.now() - time_of_last_save
+                mins_since_last_save = time_since_last_save.total_seconds() / 60.
+                sl.debug("Minutes since last save: %f" % mins_since_last_save)
+                if mins_since_last_save >= params['save-interval-mins']:
+                    sl.info("Enough time has passed; save the network parameters")
+                    save_net_params_if_necessary(netd, params)
+                    time_of_last_save = datetime.datetime.now()
             iter_num += 1
             if params['monitoring-file'] != 'None':
                 update_monitoring(params['monitoring-file'])
@@ -115,6 +126,17 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
             raise
         else:
             sl.error(" EINTR ERROR CAUGHT. YET AGAIN ")
+
+
+def save_net_params_if_necessary(netd, params):
+    if 'final_layers' in netd and params['model'] is not 'None' and params['trainable'] is True:
+        nn_values = lasagne.layers.get_all_param_values(netd['final_layers'])
+        sl.info('Saving NN param values to {0}'.format(params['model']))
+        relevant_params = dict(params)
+        del relevant_params['dependency']
+        nn_packet = {'params': relevant_params, 'nn': nn_values,
+                     'w2i': w2i, 't2i': t2i, 'umls_vocab': umls_v}
+        pickle.dump(nn_packet, open(params['model'], 'wb'))
 
 
 def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals):
@@ -229,23 +251,23 @@ def driver(worker, xxx_todo_changeme):
                     Mask[0:params['batch-size']], Y[0:params['batch-size']], params, numTags, emb_w)
     crf_output, lstm_output, train, compute_cost, compute_acc, compute_cost_regularization = netd['crf_output'], netd[
         'lstm_output'], netd['train'], netd['compute_cost'], netd['compute_acc'], netd['compute_cost_regularization']
+
+    if params['model']:
+        net_params_filename = params['model']
+        if os.path.isfile(net_params_filename):
+            sl.info('Loading Network weights from {0}'.format(net_params_filename))
+            nn_v_d = pickle.load(open(params['model'], 'rb'), encoding='latin1')
+            lasagne.layers.set_all_param_values(netd['final_layers'], nn_v_d['nn'])
+        else:
+            sl.info("Can't load Network weights from {0}; continuing with random weights".format(net_params_filename))
+    else:
+        sl.info('No file to load Network weights from has been given')
+
     if 'trainable' in params and params['trainable'] == True:
         train_NN(train, crf_output, lstm_output, train_i, compute_cost,
-                 compute_acc, compute_cost_regularization, worker)
-    else:
-        sl.info('Trainable is off. Loading Network weights from {0}'.format(
-            params['model']))
-        nn_v_d = pickle.load(open(params['model'], 'rb'), encoding='latin1')
-        lasagne.layers.set_all_param_values(netd['final_layers'], nn_v_d['nn'])
+                 compute_acc, compute_cost_regularization, worker, netd)
 
-    if 'final_layers' in netd and params['model'] is not 'None' and params['trainable'] is True:
-        nn_values = lasagne.layers.get_all_param_values(netd['final_layers'])
-        sl.info('Saving NN param values to {0}'.format(params['model']))
-        relevant_params = dict(params)
-        del relevant_params['dependency']
-        nn_packet = {'params': relevant_params, 'nn': nn_values,
-                     'w2i': w2i, 't2i': t2i, 'umls_vocab': umls_v}
-        pickle.dump(nn_packet, open(params['model'], 'wb'))
+    save_net_params_if_necessary(netd, params)
 
     if params['deploy'] == 1:
         _, results = evaluate_neuralnet(lstm_output, np.concatenate([X[test_i].astype(
