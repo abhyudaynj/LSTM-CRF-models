@@ -63,23 +63,23 @@ def get_Approx_Metrics(y_true, y_pred, verbose=True, preMsg='', flat_list=False)
     return avg_f1
 
 
-def get_ConfusionMatrix(true, predicted, final_eval=False, final_eval_out_file=''):
+def get_ConfusionMatrix(true, predicted, is_final_eval=False, final_eval_out_file=''):
     # Confusion Matrix is only valid for partial evaluation.
     true_chain = list(itertools.chain.from_iterable(true))
     predicted_chain = list(itertools.chain.from_iterable(predicted))
     msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(
         ConfusionMatrix(true_chain, predicted_chain))
     print(msg)
-    if final_eval and final_eval_out_file is not "":
+    if is_final_eval and final_eval_out_file is not "":
         append_message_to_final_eval_file(msg, final_eval_out_file)
 
 
 
-def get_Exact_Metrics(true, predicted, verbose=True, final_eval=False, final_eval_out_file=''):
+def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_eval_out_file=''):
     true, predicted = strip_BIO(true, predicted)
     if verbose:
         print('------------------------ Exact Metrics---------------------------')
-        get_ConfusionMatrix(true, predicted, final_eval, final_eval_out_file)
+        get_ConfusionMatrix(true, predicted, is_final_eval, final_eval_out_file)
     labels = get_labels(true, predicted)
     true_positive = {label: 0 for label in labels}
     trues = {label: 0 for label in labels}
@@ -151,7 +151,7 @@ def get_Exact_Metrics(true, predicted, verbose=True, final_eval=False, final_eva
             msg = "The tag \'{0}\' has {1} elements and recall,precision,f1 ={2},{3}, {4}".format(
                 l, trues[l], recall, precision, f1)
             print(msg)
-            if final_eval and final_eval_out_file is not "":
+            if is_final_eval and final_eval_out_file is not "":
                 append_message_to_final_eval_file(msg, final_eval_out_file)
 
 
@@ -166,7 +166,7 @@ def get_Exact_Metrics(true, predicted, verbose=True, final_eval=False, final_eva
         msg = "All medical tags collectively have {0} elements and recall,precision,f1 ={1},{2}, {3}".format(
             num_candidates, avg_recall, avg_precision, avg_f1)
         print(msg)
-        if final_eval and final_eval_out_file is not "":
+        if is_final_eval and final_eval_out_file is not "":
             append_message_to_final_eval_file(msg, final_eval_out_file)
 
     return avg_f1

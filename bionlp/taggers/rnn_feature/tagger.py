@@ -88,7 +88,7 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
                 update_monitoring(params['monitoring-file'])
 
     sl.info("Final Validation eval")
-    evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, final_eval=True)
+    evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, is_final_eval=True)
 
 
 def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches):
@@ -182,7 +182,7 @@ def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
     return val_acc / num_valid_batches, val_loss / num_valid_batches
 
 
-def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, strict=False, verbose=True, final_eval=False):
+def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, strict=False, verbose=True, is_final_eval=False):
     if params['trainable'] is False and params['noeval'] == True:
         verbose = False
     if z_test == None:
@@ -215,7 +215,7 @@ def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, stri
                                           i2t[l] for l in predicted], verbose=verbose, preMsg='NN:', flat_list=True)
     if strict:
         res = eval_metrics.get_Exact_Metrics(
-            label_sent, predicted_sent, verbose=verbose, final_eval=final_eval, final_eval_out_file=params['eval-file'])
+            label_sent, predicted_sent, verbose=verbose, is_final_eval=is_final_eval, final_eval_out_file=params['eval-file'])
         sl.info('Output number of tokens are {0}'.format(
             sum(len(_) for _ in predicted_sent)))
 
