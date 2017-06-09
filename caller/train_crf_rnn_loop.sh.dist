@@ -1,18 +1,14 @@
 export THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=cuda,force_device=True,exception_verbosity=high
 
-if [ "$#" -lt 1 ]
-then
-    echo "You must provide the amount of training loops as a script argument! Aborting." 1>&2
-    exit 1
-fi
-
-loop_max=$1
+loop_max=10
 for loop_index in $(seq 1 "$loop_max")
 do
-    training_id="$(date +%Y-%m-%d_%H:%M:%S)__${loop_index}"
     out_file="out_${loop_index}.txt"
     err_file="err_${loop_index}.txt"
+    training_id="$(date +%Y-%m-%d_%H:%M:%S)__${loop_index}"
+    monitoring_file="data/logs/monitor__${training_id}.pkl"
+    eval_file="data/logs/eval__${training_id}.txt"
     echo "Started loop $loop_index of $loop_max on $(date)"
-    python train_crf_rnn.py -i data/converted/GermEval2014_complete_data/GermEval2014_file-list.txt -model TestModel.pkl -e1s 300 -mf "data/logs/monitor__${training_id}.pkl" -ef "data/logs/eval__${training_id}.txt" 1> "$out_file" 2> "$err_file"
+    python train_crf_rnn.py -i data/converted/GermEval2014_complete_data/GermEval2014_file-list.txt -model TestModel.pkl -e1s 300 -mf "$monitoring_file" -ef "$eval_file" 1> "$out_file" 2> "$err_file"
     echo "Finished loop $loop_index of $loop_max on $(date)"
 done
