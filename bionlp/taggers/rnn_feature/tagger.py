@@ -215,7 +215,7 @@ def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, stri
                                           i2t[l] for l in predicted], verbose=verbose, preMsg='NN:', flat_list=True)
     if strict:
         res = eval_metrics.get_Exact_Metrics(
-            label_sent, predicted_sent, verbose=verbose, final_eval=final_eval)
+            label_sent, predicted_sent, verbose=verbose, final_eval=final_eval, final_eval_out_file=params['eval-file'])
         sl.info('Output number of tokens are {0}'.format(
             sum(len(_) for _ in predicted_sent)))
 

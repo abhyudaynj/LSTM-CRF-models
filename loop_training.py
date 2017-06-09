@@ -14,6 +14,6 @@ if __name__ == '__main__':
     today = datetime.date.today().isoformat()
     for idx in range(10):
         config_params['monitoring-file'] = "data/logs/monitor_{0}_{1}.pkl".format(today, idx)
-        ev.final_eval_out_file = "data/logs/eval_{0}_{1}.txt".format(today, idx)
+        config_params['eval-file'] = "data/logs/eval_{0}_{1}.txt".format(today, idx)
         mo.data = mo.get_init_data()
         main(config_params)
