@@ -47,6 +47,9 @@ def get_init_data():
 
 
 def add_iteration_data(data_type, data_dict):
+    global data
+    if data == {}:
+        data = get_init_data()
     assert data_type in data, "provided data type {0} not available".format(data_type)
     data[data_type].add_iteration_data(data_dict)
 
