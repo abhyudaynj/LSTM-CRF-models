@@ -13,9 +13,6 @@ KEY_LOSS_TOT = 'loss_total'
 KEY_LOSS_CRF = 'loss_crf'
 KEY_LOSS_NET_CRF = 'loss_net_crf'
 
-data = {}
-
-
 def get_data_keys():
     return [
         KEY_ACC,
@@ -23,7 +20,6 @@ def get_data_keys():
         KEY_LOSS_NET_CRF,
         KEY_LOSS_TOT
     ]
-
 
 class MonitoringDataObject(object):
     def __init__(self):
@@ -38,12 +34,13 @@ class MonitoringDataObject(object):
     def get_data(self):
         return self.__data
 
-
 def get_init_data():
     return {
         TYPE_VALIDATION: MonitoringDataObject(),
         TYPE_TRAINING: MonitoringDataObject()
     }
+
+data = get_init_data()
 
 
 def add_iteration_data(data_type, data_dict):
