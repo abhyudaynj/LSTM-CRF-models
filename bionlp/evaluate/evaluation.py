@@ -63,7 +63,7 @@ def get_Approx_Metrics(y_true, y_pred, verbose=True, preMsg='', flat_list=False)
     return avg_f1
 
 
-def get_ConfusionMatrix(true, predicted, is_final_eval=False, final_eval_out_file=''):
+def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_file=''):
     # Confusion Matrix is only valid for partial evaluation.
     true_chain = list(itertools.chain.from_iterable(true))
     predicted_chain = list(itertools.chain.from_iterable(predicted))
@@ -79,7 +79,7 @@ def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_
     true, predicted = strip_BIO(true, predicted)
     if verbose:
         print('------------------------ Exact Metrics---------------------------')
-        get_ConfusionMatrix(true, predicted, is_final_eval, final_eval_out_file)
+        get_confusion_matrix(true, predicted, is_final_eval, final_eval_out_file)
     labels = get_labels(true, predicted)
     true_positive = {label: 0 for label in labels}
     trues = {label: 0 for label in labels}
