@@ -67,12 +67,27 @@ def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_fi
     # Confusion Matrix is only valid for partial evaluation.
     true_chain = list(itertools.chain.from_iterable(true))
     predicted_chain = list(itertools.chain.from_iterable(predicted))
-    msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(
-        ConfusionMatrix(true_chain, predicted_chain))
+    cm = ConfusionMatrix(true_chain, predicted_chain)
+    msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(cm)
     print(msg)
-    if is_final_eval and final_eval_out_file is not "":
-        append_message_to_final_eval_file(msg, final_eval_out_file)
+    if is_final_eval and final_eval_out_file is not '':
+        pickle_confusion_matrix(cm, final_eval_out_file)
 
+
+def pickle_confusion_matrix(confusion_matrix, path):
+    with open(path, "wb") as cm_f:
+        pickle.dump(confusion_matrix, cm_f)
+
+
+def load_confusion_matrix(path):
+    with open(path, "rb") as cm_f:
+        return pickle.load(cm_f)
+
+
+def read_confusion_matrix_values(confusion_matrix):
+    tags = confusion_matrix._values
+    matrix = confusion_matrix._confusion
+    return tags, matrix
 
 
 def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_eval_out_file=''):
@@ -151,8 +166,6 @@ def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_
             msg = "The tag \'{0}\' has {1} elements and recall,precision,f1 ={2},{3}, {4}".format(
                 l, trues[l], recall, precision, f1)
             print(msg)
-            if is_final_eval and final_eval_out_file is not "":
-                append_message_to_final_eval_file(msg, final_eval_out_file)
 
 
     if num_candidates > 0:
@@ -166,8 +179,6 @@ def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_
         msg = "All medical tags collectively have {0} elements and recall,precision,f1 ={1},{2}, {3}".format(
             num_candidates, avg_recall, avg_precision, avg_f1)
         print(msg)
-        if is_final_eval and final_eval_out_file is not "":
-            append_message_to_final_eval_file(msg, final_eval_out_file)
 
     return avg_f1
 
