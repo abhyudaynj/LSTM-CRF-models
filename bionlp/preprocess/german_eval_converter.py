@@ -7,8 +7,8 @@ import os
 import json
 import argparse
 
-SOURCE_DIR = "data/sources/GermEval2014_complete_data"
-TARGET_DIR = "data/converted/GermEval2014_complete_data/datasets"
+SOURCE_DIR = "../../data/sources/GermEval2014_complete_data"
+TARGET_DIR = "../../data/converted/GermEval2014_complete_data/datasets"
 SOURCE_FILE = "NER-de-train.tsv"
 BATCH_SIZE = 1000
 
