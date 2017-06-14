@@ -119,7 +119,7 @@ def crf_model_arguments():
     parser.add_argument('-mf', '--monitoring-file', type=str, dest='monitoring-file', default='None',
                         help='Path to the file to store monitoring during training. Default is None (no monitoring)')
     parser.add_argument('-ef', '--eval-file', type=str, dest='eval-file', default='None',
-                        help='Path to the pkl file to store information about the results of the final training evaluation. Default is None.')
+                        help='Path to the pkl file to store the confusion matrix of the final training evaluation. Default is None.')
 
     args = parser.parse_args()
     if args.input == 'None':
