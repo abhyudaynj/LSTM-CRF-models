@@ -30,8 +30,17 @@ def trainer(config_params):
             config_params['input']))
         raw_text, documents = annotated_file_extractor(
             config_params['input'], config_params['umls'])
-        encoded_documents = encode_data_format(
-            documents, raw_text, config_params['umls'])
+
+        label_blacklist_file = config_params['label-blacklist-file']
+        if label_blacklist_file is not 'None':
+            assert os.path.isfile(label_blacklist_file), "The label_blacklist_file '%s' can not be found or opened!" % label_blacklist_file
+            with open(label_blacklist_file, "r") as blacklist_f:
+                filter_list = [tag.strip() for tag in blacklist_f.read().split(',')]
+        else:
+            filter_list = []
+
+        encoded_documents = encode_data_format(documents, raw_text, config_params['umls'],
+            config_params['sent-limit'], filter_list)
     else:
         encoded_documents = pickle.load(
             open(config_params['dependency']['data'], 'rb'), encoding='latin1')
