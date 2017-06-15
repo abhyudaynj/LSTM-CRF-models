@@ -8,6 +8,8 @@ import numpy as np
 SOURCE_DIR = "data/logs"
 
 
+#   LOADING  ##
+
 def load_monitoring(filename="monitor_2017-06-"):
     accuracy = {mo.TYPE_VALIDATION: [], mo.TYPE_TRAINING: []}
     loss = {mo.TYPE_VALIDATION: [], mo.TYPE_TRAINING: []}
@@ -22,6 +24,34 @@ def load_monitoring(filename="monitor_2017-06-"):
 
     result = {mo.METRIC_ACC: accuracy, mo.METRIC_LOSS_TOT: loss}
     return result
+
+
+def parse_eval_line(line=""):
+    fulltag, rest = line.split(' tag ')[1].split(' has ')
+    tag = fulltag.replace("'", "")
+
+    count, rest = rest.split(" elements ")
+    recall, precision, f1 = rest.split("=")[1].split(",")
+
+    return tag, {"count": int(count), "recall": float(recall), "precision": float(precision), "f1": float(f1)}
+
+
+def load_eval(filename="eval_2017-06-"):
+    result = {}
+    for file in os.listdir(SOURCE_DIR):
+        if file.startswith(filename) and file.endswith(".txt"):
+            with open(os.path.join(SOURCE_DIR, file), "r") as fh:
+                for line in fh:
+                    if line.startswith("The tag"):
+                        tag, line_result = parse_eval_line(line)
+
+                        if tag not in result:
+                            result[tag] = {"count": [], "recall": [], "precision": [], "f1": []}
+                        [result[tag][key].append(value) for key, value in line_result.items()]
+    return result
+
+
+##  PLOTTING #
 
 
 def plot_monitoring_detail(monitoring_dict, metric):
@@ -49,8 +79,8 @@ def plot_monitoring_detail(monitoring_dict, metric):
 def plot_monitoring(monitoring_dict, metric, ax=None):
     """plots training or validation results, all runs in one graph
     :param monitoring_dict:
-    :param metric:
-    :param ax:
+    :param metric: 'accuracy' or 'loss'
+    :param ax: handle to the axes to plot into. If None, a new figure will be created
     :return:
     """
     assert metric in monitoring_dict, \
@@ -74,31 +104,6 @@ def plot_monitoring(monitoring_dict, metric, ax=None):
     ax.set_xlabel("Iteration number")
     ax.set_ylabel(metric.capitalize())
     return ax
-
-
-def parse_eval_line(line=""):
-    fulltag, rest = line.split(' tag ')[1].split(' has ')
-    tag = fulltag.replace("'", "")
-
-    count, rest = rest.split(" elements ")
-    recall, precision, f1 = rest.split("=")[1].split(",")
-
-    return tag, {"count": int(count), "recall": float(recall), "precision": float(precision), "f1": float(f1)}
-
-
-def load_eval(filename="eval_2017-06-"):
-    result = {}
-    for file in os.listdir(SOURCE_DIR):
-        if file.startswith(filename) and file.endswith(".txt"):
-            with open(os.path.join(SOURCE_DIR, file), "r") as fh:
-                for line in fh:
-                    if line.startswith("The tag"):
-                        tag, line_result = parse_eval_line(line)
-
-                        if tag not in result:
-                            result[tag] = {"count": [], "recall": [], "precision": [], "f1": []}
-                        [result[tag][key].append(value) for key, value in line_result.items()]
-    return result
 
 
 def plot_eval_detail(eval_dict):
@@ -165,7 +170,8 @@ def plot_summary(monitorfile="eval_2017-06-", evalfile="eval_2017-06-"):
 
 
 def mean_when_defined(data):
-    """ compute the mean of the values in data, but include only those values that are defined
+    """ compute the mean of the values in data, where data is a list of lists,
+    but include only those values that are defined.
     The idea is to pad the missing values with nan and then use numpy.nanmean.
     Padding is done via the trick from https://stackoverflow.com/questions/32037893
     :param data:
