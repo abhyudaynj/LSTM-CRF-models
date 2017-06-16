@@ -43,7 +43,7 @@ def pad_and_mask(X,U,Y,Z,maxlen ,padding='pre', value=0.):
             x[idx, :len(X[idx]),0] = X[idx]
             y[idx, :len(X[idx])] = Y[idx]
             u[idx, :len(X[idx])] = U[idx]
-            mask[idx, :len(X[i])] = 1
+            mask[idx, :len(X[idx])] = 1
         elif padding == 'pre':
             x[idx, -len(X[idx]):,0] = X[idx]
             y[idx, -len(X[idx]):] = Y[idx]
