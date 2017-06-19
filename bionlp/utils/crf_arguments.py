@@ -116,8 +116,11 @@ def crf_model_arguments():
                         default=0.0, help='Add l2 penalty. default 0.0, off')
     parser.add_argument('-mode', '--mode', dest='mode', type=int, default=1,
                         help='Mode of structured inference. Default is 1 : Modeling unary and binary potentials with neural nets. 1: Approximating Messages -1 : Only modeling the unary potential with neural nets.')
-    parser.add_argument('-mo', '--monitoring-file', type=str, dest='monitoring-file', default='None',
+    parser.add_argument('-mf', '--monitoring-file', type=str, dest='monitoring-file', default='None',
                         help='Path to the file to store monitoring during training. Default is None (no monitoring)')
+    parser.add_argument('-ef', '--eval-file', type=str, dest='eval-file', default='None',
+                        help='Path to the pkl file to store the confusion matrix of the final training evaluation. Default is None.')
+
     args = parser.parse_args()
     if args.input == 'None':
         parser.error("Input is a required argument")
