@@ -59,10 +59,38 @@ def match_words(s1, s2):
                 match_flag = False
         return match_flag
 
-def prepareSents(wrds, complete_text):
+def prepareSents(wrds, complete_text, sentence_delim='\n'):
+    """
+    From a list of tuples that contain information about each token in the text,
+    and a string that contains the complete text (including the sentence delimiters),
+    create a list of lists for the sentences in the text.
+
+    wrds : list
+        A list that contains information about each token in the text, with each element
+        in the list being a 3-tuple.
+        first element of each 3-tuple: str
+            the token itself
+        second element of each 3-tuple: int
+            the index that the first character of the token has in the total text
+        third element of each 3-tuple: str
+            the target tag associated with the token
+
+    complete_text : str
+        The complete text as one string. The text is expected to have its sentences
+        separated by the given sentence delimiter.
+
+    sentence_delim : str
+        The string that acts as the sentence delimiter in complete_text.
+
+    returns : list
+        Similar to the given argument wrds, a list is returned, but it is now a list
+        of lists. Each sublist represents a sentence, and contains the 3-tuples given
+        by wrds for its tokens. This function thus acts as a means of splitting the
+        tokens given by wrds into their respective sentences.
+    """
     valid_sents = []
     sent_list = [[(word, 0, 'None') for word in sent]
-                 for sent in complete_text.split('\n')]
+                 for sent in complete_text.split(sentence_delim)]
     word_list = [word for word in wrds if word[0] != ' ']
     sent_list = [[word for word in concat_words(
         strip_chars(sent)) if word[0] != ' '] for sent in sent_list]
