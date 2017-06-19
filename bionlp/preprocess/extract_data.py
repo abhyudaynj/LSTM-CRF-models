@@ -1,6 +1,6 @@
 
 from tqdm import tqdm
-from nltk import word_tokenize, sent_tokenize
+from nltk import word_tokenize
 import re
 import json
 import os
@@ -59,23 +59,21 @@ def match_words(s1, s2):
                 match_flag = False
         return match_flag
 
-
-def prepareSents(wrds):
+def prepareSents(wrds, complete_text):
     valid_sents = []
-    text = ''.join(wrd[0] for wrd in wrds)
     sent_list = [[(word, 0, 'None') for word in sent]
-                 for sent in sent_tokenize(text)]
-    text = [word for word in wrds if word[0] != ' ']
+                 for sent in complete_text.split('\n')]
+    word_list = [word for word in wrds if word[0] != ' ']
     sent_list = [[word for word in concat_words(
         strip_chars(sent)) if word[0] != ' '] for sent in sent_list]
     idx = 0
     s_idx = 0
-    while idx < len(text) and s_idx < len(sent_list):
-        if not match_words(sent_list[s_idx], text[idx:idx + len(sent_list[s_idx])]):
+    while idx < len(word_list) and s_idx < len(sent_list):
+        if not match_words(sent_list[s_idx], word_list[idx:idx + len(sent_list[s_idx])]):
             print("NLTK:" + str(sent_list[s_idx]))
-            print('MINE:' + str(text[idx:idx + len(sent_list[s_idx])]))
+            print('MINE:' + str(word_list[idx:idx + len(sent_list[s_idx])]))
         else:
-            valid_sents += [text[idx:idx + len(sent_list[s_idx])]]
+            valid_sents += [word_list[idx:idx + len(sent_list[s_idx])]]
         idx = idx + len(sent_list[s_idx])
         s_idx += 1
     return valid_sents
@@ -92,7 +90,7 @@ def build_char_annotations(anns, txt):
         chr_list[start:stop] = [(charac[0], start + chr_idx, types)
                                 for chr_idx, charac in enumerate(chr_list[start:stop])]
     tkn_list = concat_words(strip_chars(chr_list))
-    return prepareSents(tkn_list)
+    return prepareSents(tkn_list, txt)
 
 
 def strip_chars(chr_list):
