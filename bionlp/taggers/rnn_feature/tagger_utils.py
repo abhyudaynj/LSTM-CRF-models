@@ -181,7 +181,7 @@ def get_embedding_weights(w2i, params):
         # be reset later.
         mdl = {}
         embedding_vector_size = params['emb1_size']
-    return = get_regular_or_capitalized_embeddings(w2i, mdl, params)
+    return get_regular_or_capitalized_embeddings(w2i, mdl, params)
 
 
 def construct_binary_features(tagged_sentence):
