@@ -5,6 +5,7 @@ import json
 from nltk.metrics import ConfusionMatrix
 from sklearn.metrics import f1_score, recall_score, precision_score
 import collections
+import analysis.io as io
 
 IGNORE_TAG = 'None'
 logging.basicConfig(level=logging.INFO)
@@ -71,23 +72,7 @@ def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_fi
     msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(cm)
     print(msg)
     if is_final_eval and final_eval_out_file is not 'None':
-        pickle_confusion_matrix(cm, final_eval_out_file)
-
-
-def pickle_confusion_matrix(confusion_matrix, path):
-    with open(path, "wb") as cm_f:
-        pickle.dump(confusion_matrix, cm_f)
-
-
-def load_confusion_matrix(path):
-    with open(path, "rb") as cm_f:
-        return pickle.load(cm_f)
-
-
-def read_confusion_matrix_values(confusion_matrix):
-    tags = confusion_matrix._values
-    matrix = confusion_matrix._confusion
-    return tags, matrix
+        io.pickle_confusion_matrix(cm, final_eval_out_file)
 
 
 def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_eval_out_file='None'):

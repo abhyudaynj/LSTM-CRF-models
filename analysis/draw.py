@@ -1,56 +1,9 @@
 import matplotlib.pylab as plt
-import bionlp.utils.monitoring as mo
-import pickle
-import os
 import itertools
 import numpy as np
-
-SOURCE_DIR = "data/logs"
-
-
-#   LOADING  ##
-
-def load_monitoring(filename="monitor_2017-06-"):
-    accuracy = {mo.TYPE_VALIDATION: [], mo.TYPE_TRAINING: []}
-    loss = {mo.TYPE_VALIDATION: [], mo.TYPE_TRAINING: []}
-    for file in os.listdir(SOURCE_DIR):
-        if file.startswith(filename) and file.endswith('.pkl'):
-            pkl = pickle.load(open(os.path.join(SOURCE_DIR, file), 'rb'))
-            accuracy[mo.TYPE_VALIDATION].append(pkl[mo.TYPE_VALIDATION][mo.METRIC_ACC])
-            accuracy[mo.TYPE_TRAINING].append(pkl[mo.TYPE_TRAINING][mo.METRIC_ACC])
-
-            loss[mo.TYPE_VALIDATION].append(pkl[mo.TYPE_VALIDATION][mo.METRIC_LOSS_TOT])
-            loss[mo.TYPE_TRAINING].append(pkl[mo.TYPE_TRAINING][mo.METRIC_LOSS_TOT])
-
-    return {mo.METRIC_ACC: accuracy, mo.METRIC_LOSS_TOT: loss}
-
-
-def parse_eval_line(line=""):
-    fulltag, rest = line.split(' tag ')[1].split(' has ')
-    tag = fulltag.replace("'", "")
-
-    count, rest = rest.split(" elements ")
-    recall, precision, f1 = rest.split("=")[1].split(",")
-
-    return tag, {"count": int(count), "recall": float(recall), "precision": float(precision), "f1": float(f1)}
-
-
-def load_eval(filename="eval_2017-06-"):
-    result = {}
-    for file in os.listdir(SOURCE_DIR):
-        if file.startswith(filename) and file.endswith(".txt"):
-            with open(os.path.join(SOURCE_DIR, file), "r") as fh:
-                for line in fh:
-                    if line.startswith("The tag"):
-                        tag, line_result = parse_eval_line(line)
-
-                        if tag not in result:
-                            result[tag] = {"count": [], "recall": [], "precision": [], "f1": []}
-                        [result[tag][key].append(value) for key, value in line_result.items()]
-    return result
-
-
-##  PLOTTING #
+import analysis.io as io
+import bionlp.utils.monitoring as mo
+import analysis.utils as utils
 
 
 def plot_monitoring_detail(monitoring_dict, metric):
@@ -60,7 +13,7 @@ def plot_monitoring_detail(monitoring_dict, metric):
     :return:
     """
     assert metric in monitoring_dict, \
-        "please use {0} of {1} as metric".format(mo.METRIC_ACC, load_monitoring(mo.METRIC_LOSS_TOT))
+        "please use {0} of {1} as metric".format(mo.METRIC_ACC, io.load_monitoring(mo.METRIC_LOSS_TOT))
     data = monitoring_dict[metric]
     f = plt.figure()
     for idx, vals in enumerate(data[mo.TYPE_TRAINING]):
@@ -83,13 +36,13 @@ def plot_monitoring(monitoring_dict, metric, ax=None):
     :return:
     """
     assert metric in monitoring_dict, \
-        "please use {0} of {1} as metric".format(mo.METRIC_ACC, load_monitoring(mo.METRIC_LOSS_TOT))
+        "please use {0} of {1} as metric".format(mo.METRIC_ACC, io.load_monitoring(mo.METRIC_LOSS_TOT))
 
     training_data = monitoring_dict[metric][mo.TYPE_TRAINING]
-    training_mean = mean_when_defined(training_data)
+    training_mean = utils.mean_when_defined(training_data)
 
     validation_data = monitoring_dict[metric][mo.TYPE_VALIDATION]
-    validation_mean = mean_when_defined(validation_data)
+    validation_mean = utils.mean_when_defined(validation_data)
 
     if ax is None:
         ax = plt.subplot(1,1,1)
@@ -106,7 +59,7 @@ def plot_monitoring(monitoring_dict, metric, ax=None):
 
 
 def plot_eval_detail(eval_dict):
-    """ plots F1-scores vs number of training documents. One subplot for each tag
+    """ plots F1-scores vs number of training documents for several runs. One subplot for each tag
     :param eval_dict:
     :return:
     """
@@ -127,6 +80,8 @@ def plot_eval_detail(eval_dict):
 
 
 def plot_eval_without_none(eval_dict, ax=None):
+    """ plots F1-scores vs number of training documents for several runs, omit the None tag
+    """
     markers = itertools.cycle(['s', '+', '.', 'o', '*', '^', '>', '<'])
     if ax is None:
         ax = plt.subplot(1,1,1)
@@ -140,6 +95,8 @@ def plot_eval_without_none(eval_dict, ax=None):
 
 
 def plot_eval_none_only(eval_dict, ax=None):
+    """ plots F1-scores vs number of training documents for several runs, only the None tag
+        """
     if ax is None:
         ax = plt.subplot(1,1,1)
     ax.plot(eval_dict['None']['count'], eval_dict['None']['f1'], 'v')
@@ -149,9 +106,18 @@ def plot_eval_none_only(eval_dict, ax=None):
     return ax
 
 
-def plot_summary(monitorfile="eval_2017-06-", evalfile="eval_2017-06-"):
-    monitor_dict = load_monitoring(monitorfile)
-    eval_dict = load_eval(evalfile)
+def plot_metrics(confusion_metrics, ax=None):
+    if ax is None:
+        ax = plt.subplot(1,1,1)
+    x_ticks = np.arange(len(confusion_metrics['f_score']))
+    ax.barh(x_ticks, confusion_metrics['f_score'])
+    ax.set_yticks(x_ticks)
+    ax.set_yticklabels(confusion_metrics['tags'])
+
+
+def plot_multirun_summary(monitorfile="eval_2017-06-", evalfile="eval_2017-06-"):
+    monitor_dict = io.load_monitoring(monitorfile)
+    eval_dict = io.load_eval_txt_file(evalfile)
 
     f = plt.figure()
     eval_nonone_h = plt.subplot2grid((2, 2), (0, 0), colspan=2)
@@ -168,22 +134,15 @@ def plot_summary(monitorfile="eval_2017-06-", evalfile="eval_2017-06-"):
     return f
 
 
-def mean_when_defined(data):
-    """ compute the mean of the values in data, where data is a list of lists,
-    but include only those values that are defined.
-    The idea is to pad the missing values with nan and then use numpy.nanmean.
-    Padding is done via the trick from https://stackoverflow.com/questions/32037893
-    :param data:
-    :return:
-    """
-    # Get lengths of each row of data
-    lens = np.array([len(i) for i in data])
+def plot_cv_summary(monitorfile, evalfile):
+    monitor_dict = io.load_monitoring(monitorfile)
+    cm = io.load_confusion_matrix(evalfile)
+    confusion_metrics = utils.cm_to_metrics(cm)
 
-    # Mask of valid places in each row
-    mask = np.arange(lens.max()) < lens[:,None]
+    f = plt.figure()
+    eval_h = plt.subplot(2, 1, 1)
+    monitor_h = plt.subplot(2, 1, 2)
 
-    # Setup output array and put elements from data into masked positions
-    padded_data = np.ones(mask.shape, dtype=float)*np.nan
-    padded_data[mask] = np.concatenate(data)
+    plot_metrics(confusion_metrics, eval_h)
+    plot_monitoring(monitor_dict, mo.METRIC_ACC, monitor_h)
 
-    return np.nanmean(padded_data, axis=0)
