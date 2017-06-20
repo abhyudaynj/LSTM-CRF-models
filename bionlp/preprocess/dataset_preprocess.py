@@ -26,16 +26,13 @@ def encode_data_format(documents, raw_text, umls_params, sentence_limit=0, label
             tid = 0
             tokenList = []
             for token in sent:
-                newToken = Token(token[0], tid)
                 label = token[2]
                 if label in label_blacklist:
                     sent_is_blacklisted = True
                     break
                 else:
-                    newToken.attr['Annotation'] = label
-                    newToken.attr['offset'] = token[1]
-                    newToken.attr['document'] = did
-                    tokenList.append(newToken)
+                    tokenList.append(Token(value=token[0], id=tid,
+                        document=did, offset=token[1], Annotation=label))
                     tid += 1
             if not sent_is_blacklisted:
                 newSentence = Sentence(tokenList, sid)
