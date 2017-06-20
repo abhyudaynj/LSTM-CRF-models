@@ -22,8 +22,7 @@ def load_monitoring(filename="monitor_2017-06-"):
             loss[mo.TYPE_VALIDATION].append(pkl[mo.TYPE_VALIDATION][mo.METRIC_LOSS_TOT])
             loss[mo.TYPE_TRAINING].append(pkl[mo.TYPE_TRAINING][mo.METRIC_LOSS_TOT])
 
-    result = {mo.METRIC_ACC: accuracy, mo.METRIC_LOSS_TOT: loss}
-    return result
+    return {mo.METRIC_ACC: accuracy, mo.METRIC_LOSS_TOT: loss}
 
 
 def parse_eval_line(line=""):
