@@ -11,30 +11,44 @@ from bionlp.data.document import Document as Document
 from bionlp.data.dataset import Dataset as Dataset
 
 
-def encode_data_format(documents, raw_text, umls_params):
+def encode_data_format(documents, raw_text, umls_params, sentence_limit=0, label_blacklist=[]):
     logger.info('Encoding dataset into data format')
     document_dict = {did_: (dtext_, metamap_)
                      for (did_, dtext_, metamap_) in raw_text}
     documentList = []
+    total_sent_count = 0
+    sent_limit_reached = False
     for did, document in tqdm(documents):
         sentenceList = []
-        for sid, sent in enumerate(document):
+        sid = 0
+        for sent in document:
+            sent_is_blacklisted = False
             tid = 0
             tokenList = []
             for token in sent:
-                newToken = Token(token[0], tid)
-                newToken.attr['Annotation'] = token[2]
-                newToken.attr['offset'] = token[1]
-                newToken.attr['document'] = did
-                tokenList.append(newToken)
-                tid += 1
-            newSentence = Sentence(tokenList, sid)
-            sentenceList.append(newSentence)
+                label = token[2]
+                if label in label_blacklist:
+                    sent_is_blacklisted = True
+                    break
+                else:
+                    tokenList.append(Token(value=token[0], id=tid,
+                        document=did, offset=token[1], Annotation=label))
+                    tid += 1
+            if not sent_is_blacklisted:
+                newSentence = Sentence(tokenList, sid)
+                sentenceList.append(newSentence)
+                sid += 1
+                total_sent_count += 1
+                if sentence_limit != 0 and total_sent_count >= sentence_limit:
+                    sent_limit_reached = True
+                    break
         newDocument = Document(sentenceList, did)
         newDocument.attr['raw_text'] = document_dict[did][0]
         if umls_params != 0:
             newDocument.attr['metamap_anns'] = document_dict[did][1]
         documentList.append(newDocument)
+        if sent_limit_reached:
+            break
     dataset = Dataset(documentList)
     dataset.passive.append('Annotation')
     return dataset
