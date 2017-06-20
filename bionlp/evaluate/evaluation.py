@@ -77,7 +77,7 @@ def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_fi
 
 def pickle_confusion_matrix(confusion_matrix, path):
     # TODO: Adding the current timestamp is only a temporary change
-    path_with_time = path + "__" + strftime("%Y-%m-%d %H:%M:%S", gmtime())
+    path_with_time = path + "__" + strftime("%Y-%m-%d_%H:%M:%S", gmtime())
     with open(path_with_time, "wb") as cm_f:
         pickle.dump(confusion_matrix, cm_f)
 
