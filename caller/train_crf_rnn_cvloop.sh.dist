@@ -1,0 +1,19 @@
+export THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=cuda,force_device=True,exception_verbosity=high
+
+train(){
+    sent_limit=$1
+    echo "Started training with sentence limit $sent_limit on $(date)"
+    model="TestModel__${sent_limit}.pkl"
+    monitoring_file="data/logs/monitor__${sent_limit}.pkl"
+    eval_file="data/logs/eval__${sent_limit}.pkl"
+    out_file="out_${sent_limit}.txt"
+    err_file="err_${sent_limit}.txt"
+    python train_crf_rnn.py -i data/converted/CoNLL_2000/CoNLL_2000_file-list.txt -model "$model" -w 1 -e1s 50 -n 0 -sl "$sent_limit" -cv 1 -mf "$monitoring_file" -ef "$eval_file" 1> "$out_file" 2> "$err_file"
+    echo "Finished training with sentence limit $sent_limit on $(date)"
+}
+
+train 8000
+train 7000
+train 6000
+train 5000
+train 4000

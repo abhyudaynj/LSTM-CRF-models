@@ -5,6 +5,8 @@ import json
 from nltk.metrics import ConfusionMatrix
 from sklearn.metrics import f1_score, recall_score, precision_score
 import collections
+from time import gmtime, strftime
+import os
 
 IGNORE_TAG = 'None'
 logging.basicConfig(level=logging.INFO)
@@ -75,7 +77,11 @@ def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_fi
 
 
 def pickle_confusion_matrix(confusion_matrix, path):
-    with open(path, "wb") as cm_f:
+    # TODO: Adding the current timestamp is only a temporary change
+    datetime = strftime("%Y-%m-%d_%H-%M-%S", gmtime())
+    name, ext = os.path.splitext(path)
+    path_with_time = '{0}_{1}{2}'.format(name, datetime, ext)
+    with open(path_with_time, "wb") as cm_f:
         pickle.dump(confusion_matrix, cm_f)
 
 
