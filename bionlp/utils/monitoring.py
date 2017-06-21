@@ -8,17 +8,17 @@ https://stackoverflow.com/a/6842257/2191154
 TYPE_VALIDATION = 'validation'
 TYPE_TRAINING = 'training'
 
-KEY_ACC = 'accuracy'
-KEY_LOSS_TOT = 'loss_total'
-KEY_LOSS_CRF = 'loss_crf'
-KEY_LOSS_NET_CRF = 'loss_net_crf'
+METRIC_ACC = 'accuracy'
+METRIC_LOSS_TOT = 'loss_total'
+METRIC_LOSS_CRF = 'loss_crf'
+METRIC_LOSS_NET_CRF = 'loss_net_crf'
 
 def get_data_keys():
     return [
-        KEY_ACC,
-        KEY_LOSS_CRF,
-        KEY_LOSS_NET_CRF,
-        KEY_LOSS_TOT
+        METRIC_ACC,
+        METRIC_LOSS_CRF,
+        METRIC_LOSS_NET_CRF,
+        METRIC_LOSS_TOT
     ]
 
 class MonitoringDataObject(object):

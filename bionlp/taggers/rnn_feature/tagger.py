@@ -110,10 +110,10 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
             np.array([iter_acc, iter_cost, iter_cost_regularization, iter_cost + iter_cost_regularization])/num_batches
         monitor.add_iteration_data(monitor.TYPE_TRAINING,
                                    {
-                                       monitor.KEY_ACC: acc,
-                                       monitor.KEY_LOSS_NET_CRF: loss_net_crf,
-                                       monitor.KEY_LOSS_CRF: loss_crf,
-                                       monitor.KEY_LOSS_TOT: loss_tot
+                                       monitor.METRIC_ACC: acc,
+                                       monitor.METRIC_LOSS_NET_CRF: loss_net_crf,
+                                       monitor.METRIC_LOSS_CRF: loss_crf,
+                                       monitor.METRIC_LOSS_TOT: loss_tot
                                    })
         sl.info(('TRAINING : Accuracy = {0}'.format(acc)))
         sl.info(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
@@ -152,7 +152,7 @@ def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, 
         max_in = np.argmax(vals)
         sl.info("val acc argmax {1} : list is : {0}".format(vals, max_in))
         monitor.add_iteration_data(
-            monitor.TYPE_VALIDATION, {monitor.KEY_ACC: val_acc, monitor.KEY_LOSS_TOT: val_loss}
+            monitor.TYPE_VALIDATION, {monitor.METRIC_ACC: val_acc, monitor.METRIC_LOSS_TOT: val_loss}
         )
         if max_in == 0:
             patience_has_ended = True
