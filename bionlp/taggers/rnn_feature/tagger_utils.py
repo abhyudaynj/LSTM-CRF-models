@@ -153,15 +153,23 @@ def compare_model_to_training_vocab(emb_i, i2w, zero_vectors_out_file, nonzero_v
 
 
 def get_embedding_weights(w2i, params):
-    # TODO understand sanitiy check, it failed when running with the sample data
+    # TODO understand sanity check, it failed when running with the sample data
     # logger.info('embedding sanity check (should be a word) :{0}'.format(i2w[12]))
     if params['word2vec'] == 1 and params['trainable']:
         if 'mdl' in params['dependency'] and os.path.isfile(params['dependency']['mdl']):
-            mdl = gensim.models.KeyedVectors.load_word2vec_format(
-                params['dependency']['mdl'], binary=True)
-            logger.info('{0},{1}'.format(mdl['is'].shape, len(w2i)))
-            # read the embedding vector size from the given model
-            embedding_vector_size = mdl.syn0.shape[1]
+            try:
+                mdl = gensim.models.KeyedVectors.load_word2vec_format(params['dependency']['mdl'], binary=True)
+                logger.info('{0},{1}'.format(mdl['is'].shape, len(w2i)))
+                # read the embedding vector size from the given model
+                embedding_vector_size = mdl.syn0.shape[1]
+            except UnicodeDecodeError:
+                # if there is a UnicodeDecodeError, assume that the pickled file instead hold a
+                # Python dict where the keys are tokens and the values are the embedding vectors
+                with open(params['dependency']['mdl'], "rb") as mdl_f:
+                    mdl = pickle.load(mdl_f)
+                # to determine the embedding_vector_size, check the vector size of one of
+                # the values in the dictionary
+                embedding_vector_size = len(list(mdl.values())[0])
         else:
             logger.warning(
                 'No word2vec model binary file found. Loading random weight vectors instead.')
@@ -173,9 +181,7 @@ def get_embedding_weights(w2i, params):
         # be reset later.
         mdl = {}
         embedding_vector_size = params['emb1_size']
-    emb_i = get_regular_or_capitalized_embeddings(w2i, mdl, params)
-
-    return emb_i
+    return get_regular_or_capitalized_embeddings(w2i, mdl, params)
 
 
 def construct_binary_features(tagged_sentence):

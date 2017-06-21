@@ -24,14 +24,27 @@ from bionlp.modifiers.rnn_modifiers import add_surface_feature_list, add_umls_ty
 from bionlp.evaluate.evaluation import get_Approx_Metrics, get_Exact_Metrics, evaluator
 
 
+def load_label_blacklist(label_blacklist_file):
+    if label_blacklist_file is not 'None':
+        assert os.path.isfile(label_blacklist_file), "The label_blacklist_file '%s' can not be found or opened!" % label_blacklist_file
+        with open(label_blacklist_file, "r") as blacklist_f:
+            label_blacklist = [tag.strip() for tag in blacklist_f.read().split(',')]
+    else:
+        label_blacklist = []
+    return label_blacklist
+
+
 def trainer(config_params):
     if config_params['data-refresh'] == 1:
         logger.info('Loading new input dataset from  {0}'.format(
             config_params['input']))
         raw_text, documents = annotated_file_extractor(
             config_params['input'], config_params['umls'])
-        encoded_documents = encode_data_format(
-            documents, raw_text, config_params['umls'])
+
+        label_blacklist = load_label_blacklist(config_params['label-blacklist-file'])
+
+        encoded_documents = encode_data_format(documents, raw_text, config_params['umls'],
+            config_params['sent-limit'], label_blacklist)
     else:
         encoded_documents = pickle.load(
             open(config_params['dependency']['data'], 'rb'), encoding='latin1')

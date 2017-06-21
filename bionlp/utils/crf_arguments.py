@@ -120,6 +120,10 @@ def crf_model_arguments():
                         help='Path to the file to store monitoring during training. Default is None (no monitoring)')
     parser.add_argument('-ef', '--eval-file', type=str, dest='eval-file', default='None',
                         help='Path to the pkl file to store the confusion matrix of the final training evaluation. Default is None.')
+    parser.add_argument('-sl', '--sent-limit', type=int, dest='sent-limit', default=0,
+                        help='The maximum number of sentences that are to be read from the training data set and subsequently used for training. If 0, the entire training data set is used. Default 0.')
+    parser.add_argument('-lbf', '--label-blacklist-file', type=str, dest='label-blacklist-file', default='None',
+                        help='Path to a file containing a blacklist of target labels. If a training sentence includes a token whose target label is part of the blacklist, the sentence is excluded from the training data set. If None, no blacklist is used. Default None.')
 
     args = parser.parse_args()
     if args.input == 'None':
