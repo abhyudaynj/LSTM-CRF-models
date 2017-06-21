@@ -2,6 +2,7 @@ import bionlp.utils.monitoring as mo
 import pickle
 import os
 import numpy as np
+from time import gmtime, strftime
 
 
 SOURCE_DIR = "data/logs"
@@ -48,7 +49,10 @@ def load_eval_txt_file(filename="eval_2017-06-"):
 
 
 def pickle_confusion_matrix(confusion_matrix, path):
-    with open(path, "wb") as cm_f:
+    datetime = strftime("%Y-%m-%d_%H-%M-%S", gmtime())
+    name, ext = os.path.splitext(path)
+    path_with_time = '{0}_{1}{2}'.format(name, datetime, ext)
+    with open(path_with_time, "wb") as cm_f:
         pickle.dump(confusion_matrix, cm_f)
 
 
