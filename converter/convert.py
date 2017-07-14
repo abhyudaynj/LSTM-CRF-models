@@ -1,18 +1,20 @@
 import argparse
 import os
-
 import utils
 
-def parse_args(argparse):
-    parser = argparse.ArgumentParser()
+
+def parse_args(parser):
     parser.add_argument('converter', type=str, help='The name of the converter to use for the input data')
     parser.add_argument('input_file', type=str, help='The input file onto which the converter is used')
     parser.add_argument('output_dir', type=str, help='The directory into which to save the converted output')
     parser.add_argument('-b', '--batch_size', type=int, default=1000,
-                        help='Maximum amount of sentences per output file. If 0 is given, only one \
-                        output file is created. Default 1000.')
+                        help='Maximum amount of sentences per output file. If 0 is given, only one '
+                             'output file is created. Default 1000.')
     parser.add_argument('-t', '--tag_filter_file', type=str, default=None,
                         help='A file the contains the comma-separated tags to be excluded from the converted data')
+    parser.add_argument('-n', '--ner-mode', action='store_true',
+                        help='If set, labels will not be joined to form sequences, but all "B-" and "I-" labels '
+                             'will be used (classic NER tagging)')
     return parser.parse_args()
 
 
@@ -76,7 +78,7 @@ def create_conll2000_text_files(input_file, output_dir, batch_size, label_blackl
     utils.write_files(sentences, labels, output_filepath)
 
 
-def create_germeval_text_files(input_file, output_dir, batch_size, label_blacklist=None):
+def create_germeval_text_files(input_file, output_dir, batch_size, label_blacklist=None, join_labels=True):
     filename, ext = os.path.splitext(os.path.basename(input_file))
     sentences = []
     sentence = ''
@@ -97,15 +99,15 @@ def create_germeval_text_files(input_file, output_dir, batch_size, label_blackli
                 label = txt_list[2]
                 if label == "O":
                     continue
-                elif label[0:2] == 'B-':  # beginning of label
-                    label_obj = [start, end, word, label, label_id]
-                    labels.append(label_obj)
-                    label_id += 1
-                else:  # intermediate label
-                    label_obj = labels[-1]
-                    label_obj[1] += len(word) + 1
-                    label_obj[2] += ' ' + word
-                    labels[-1] = label_obj
+                else:
+                    if label[0:2] == 'B-' or not join_labels:
+                        # either beginning of label or labels should not be joined into sequences:
+                        #  append the label and increment label_id
+                        labels.append([start, end, word, label, label_id])
+                        label_id += 1
+                    else:  # intermediate label: append word and indices to last label_obj
+                        labels[-1][2] += ' ' + word
+                        labels[-1][1] += 1 + len(word)
             else:  # the sentence is over
                 sentences.append(sentence)  #
                 char_count += len(sentence) + 1 #
@@ -135,13 +137,14 @@ def retrieve_create_text_function(converter):
 
 
 if __name__ == '__main__':
-    args = parse_args(argparse)
+    args = parse_args(argparse.ArgumentParser())
     converter = args.converter
     input_file = args.input_file
     output_dir = args.output_dir
     batch_size = args.batch_size
     tag_filter_file = args.tag_filter_file
+    join_labels = not args.ner_mode
 
     filters = retrieve_filters(tag_filter_file)
     create_text_files = retrieve_create_text_function(converter)
-    create_text_files(input_file, output_dir, batch_size, filters)
+    create_text_files(input_file, output_dir, batch_size, filters, join_labels)
