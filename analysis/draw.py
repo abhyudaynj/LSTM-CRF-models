@@ -109,10 +109,16 @@ def plot_eval_none_only(eval_dict, ax=None):
 def plot_metrics(confusion_metrics, ax=None):
     if ax is None:
         ax = plt.subplot(1,1,1)
+
     x_ticks = np.arange(len(confusion_metrics['f_score']))
-    ax.barh(x_ticks, confusion_metrics['f_score'])
+    f1 = ax.barh(x_ticks, confusion_metrics['f_score'])
+    for x, y, count in zip(confusion_metrics['f_score'], x_ticks, confusion_metrics['counts']):
+        ax.text(0, y, count, verticalalignment='center', color='w')
+    recall = ax.plot(confusion_metrics['recall'], x_ticks, '>y')
+    precision = ax.plot(confusion_metrics['precision'], x_ticks, '<r')
     ax.set_yticks(x_ticks)
     ax.set_yticklabels(confusion_metrics['tags'])
+    ax.legend([f1[0], recall[0], precision[0]], ['f1', 'recall', 'precision'], loc=4)
 
 
 def plot_multirun_summary(monitorfile="eval_2017-06-", evalfile="eval_2017-06-"):

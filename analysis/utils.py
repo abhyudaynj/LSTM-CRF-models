@@ -34,11 +34,11 @@ def cm_to_metrics(cm):
     predicted_counts = np.sum(matrix, axis=0)
     true_positives = np.diagonal(matrix)
 
-    precision = true_positives / predicted_counts
-    recall = true_positives / actual_counts
-    f_score = 2 * precision * recall / (precision + recall)
+    precision = np.nan_to_num(true_positives / predicted_counts)
+    recall = np.nan_to_num(true_positives / actual_counts)
+    f_score = np.nan_to_num(2 * precision * recall / (precision + recall))
 
-    p = np.argsort(actual_counts)
-    print(p)
+    p = np.argsort(f_score)
 
-    return {'tags': tags[p], 'counts': actual_counts[p], 'precision': precision[p], 'recall': recall[p], 'f_score': f_score[p]}
+    return {'tags': tags[p], 'counts': actual_counts[p], 'precision': precision[p],
+            'recall': recall[p], 'f_score': f_score[p]}
