@@ -131,10 +131,11 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
 def save_net_params_if_necessary(netd, params):
     if 'final_layers' in netd and params['model'] is not 'None' and params['trainable'] is True:
         nn_values = lasagne.layers.get_all_param_values(netd['final_layers'])
+        layers = lasagne.layers.get_all_layers(netd['final_layers'])
         sl.info('Saving NN param values to {0}'.format(params['model']))
         relevant_params = dict(params)
         del relevant_params['dependency']
-        nn_packet = {'params': relevant_params, 'nn': nn_values,
+        nn_packet = {'params': relevant_params, 'nn': nn_values, 'layers': layers,
                      'w2i': w2i, 't2i': t2i, 'umls_vocab': umls_v}
         pickle.dump(nn_packet, open(params['model'], 'wb'))
 
