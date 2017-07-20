@@ -67,6 +67,11 @@ def read_confusion_matrix_values(confusion_matrix):
     return tags, matrix
 
 
-
-
-
+def load_regularizable_model_params(path_to_file):
+    result = {}
+    saved_params = pickle.load(open(path_to_file, "rb"))
+    for layer in saved_params['layers']:
+        params = layer.get_params(regularizable=True)
+        if params:
+            result[layer.name] = params
+    return result
