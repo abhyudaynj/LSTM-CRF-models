@@ -1,7 +1,7 @@
 import argparse
 import importlib
 
-parser_module = "bionlp.preprocess.parser"
+parser_module = "converter.parser"
 
 def parse_args(argparse):
     parser = argparse.ArgumentParser()

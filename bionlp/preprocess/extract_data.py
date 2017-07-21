@@ -26,25 +26,34 @@ USELESS = []
 mtch = 0.0
 mismt = 0.0
 
+# TODO: Remove hardcoded file name
+mismatch_log_file_path = "./mismatches.log"
 
-def verify_positions(anns, txt):
+
+def verify_positions(anns, txt, filename):
     valid_matches = []
     global mtch
     global mismt
+    mismt_in_file = 0
     for ann in anns:
         anno = txt[ann[0]:ann[1]]
         ptxt = ann[2]
         anno = str(''.join(anno.split("\\n")))
         ptxt = str(''.join(ptxt.split("\\n")))
         if ''.join(re.split("[\r\n\s]", anno)) != ''.join(re.split("[\r\n\s]", ptxt)):
-            print("Annotation id {0}".format(ann[4]))
-            print("mismatch{2} \'{0}\'\n ------------- instead of ------ \n\'{1}\'\n ------- found at provided position \n\n".format(
-                ''.join(re.split("[\r\n]", anno)), ''.join(re.split("[\r\n]", ptxt)), (ann[0], ann[1], ann[3])))
+            # TODO: Include option to toggle output on mismatch
             mismt += 1.0
-            raise Exception('Preparation error in training data')
+            mismt_in_file += 1
+            # print("Annotation id {0}".format(ann[4]))
+            # print("mismatch{2} \'{0}\'\n ------------- instead of ------ \n\'{1}\'\n ------- found at provided position \n\n".format(
+            #     ''.join(re.split("[\r\n]", anno)), ''.join(re.split("[\r\n]", ptxt)), (ann[0], ann[1], ann[3])))
+            # raise Exception('Preparation error in training data')
         else:
             mtch += 1.0
             valid_matches.append(ann)
+    if mismt_in_file > 0:
+        with open(mismatch_log_file_path, "a") as f_mismatches:
+            f_mismatches.write(filename)
     return valid_matches
 
 
@@ -197,6 +206,12 @@ def annotated_file_extractor(input_list_file, umls_param):
     notes = []
     list_file = [filename for filename in open(
         input_list_file, 'r').readlines() if filename.strip() != '']
+
+    # if the file that logs mismatches already exists, remove it first
+    try:
+        os.remove(mismatch_log_file_path)
+    except OSError:
+        pass
     for filename in tqdm(list_file):
         metamap_anns = []
         assert (os.path.isfile(filename.strip()) and os.path.isfile('{0}.json'.format(filename.strip(
@@ -211,7 +226,8 @@ def annotated_file_extractor(input_list_file, umls_param):
             else:
                 logger.warning('UMLS file not found for {0}. Populating with empty umls annotations'.format(
                     filename.strip()))
-        valid_anns = verify_positions(anns, file_text)
+
+        valid_anns = verify_positions(anns, file_text, filename)
         notes.append(
             (filename.strip(), build_char_annotations(valid_anns, file_text)))
         raw_text.append((filename.strip(), file_text, metamap_anns))
