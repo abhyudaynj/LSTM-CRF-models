@@ -1,17 +1,12 @@
-
 from tqdm import tqdm
-from nltk import word_tokenize
 import re
 import json
 import os
 import logging
-import nltk
-import pickle
+from string import punctuation
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-from string import punctuation
 
 PNT = [p for p in punctuation]
 SPNT = PNT + [' ']
@@ -67,6 +62,7 @@ def match_words(s1, s2):
             if s1[i][0] != s1[i][0]:
                 match_flag = False
         return match_flag
+
 
 def prepareSents(wrds, complete_text, sentence_delim='\n'):
     """
@@ -131,7 +127,6 @@ def build_char_annotations(anns, txt):
 
 
 def strip_chars(chr_list):
-
     for i, (char, chr_idx, label) in enumerate(chr_list):
         if char == '\r' or char == '\n':
             chr_list[i] = (' ', chr_idx, label)
@@ -142,7 +137,6 @@ def strip_chars(chr_list):
             continue
         else:
             cmpr_str += [chr_list[i]]
-    idx = 0
     return cmpr_str
 
 
@@ -168,67 +162,42 @@ def remove_symbols(chr_list):
     return wrds
 
 
-def file_extractor(input_list_file, umls_param):
+def get_text_from_files(input_list_file, umls_param, include_annotations=False):
     # Needs an input file with list of text file locations
+    #
+    # If include_annotations is True, each input text file 'filepath/filename' should have a json file at
+    # 'filepath/filename.json'. The json file should contain a list of annotation objects.
+    # Each annotation object is itself a list of the following format
+    # [start char offset, end char offset, annotated text, annotation type, annotation id]
     if umls_param != 0:
-        logger.info('UMLS parameter is on. I will extract all umls annotations from *.umls.json . If I dont find any such file, I will populate empty umls features')
+        logger.info('UMLS parameter is on. I will extract all umls annotations from *.umls.json. '
+                    'If I dont find any such file, I will populate empty umls features')
     raw_text = []
     notes = []
-    list_file = [filename for filename in open(
-        input_list_file, 'r').readlines() if filename.strip() != '']
-    for filename in tqdm(list_file):
-        metamap_anns = []
-        file_text = open(filename.strip(), 'r').read()
-        # Checking for existing UMLS files
-        if umls_param != 0:
-            if os.path.isfile('{0}.umls.json'.format(filename.strip())):
-                metamap_anns = json.load(
-                    open('{0}.umls.json'.format(filename.strip()), 'r'))
-            else:
-                logger.warning('UMLS file not found for {0}. Populating with empty umls annotations'.format(
-                    filename.strip()))
-        raw_text.append((filename.strip(), file_text, metamap_anns))
-        notes.append((filename.strip(), build_char_annotations([], file_text)))
-    return raw_text, notes
-
-
-def annotated_file_extractor(input_list_file, umls_param):
-    '''
-    Needs an input file with list of text file locations.
-    Each input text file 'filepath/filename' should have a json file at 'filepath/filename.json'.
-    The json file should contain a list of annotation objects.
-    Each annotation object is itself a list of the following format [start char offset, end char offset, annotated text, annotation type, annotation id]
-    '''
-    if umls_param != 0:
-        logger.info('UMLS parameter is on. I will extract all umls annotations from *.umls.json . If I dont find any such file, I will populate empty umls features')
-
-    raw_text = []
-    notes = []
-    list_file = [filename for filename in open(
-        input_list_file, 'r').readlines() if filename.strip() != '']
+    list_file = [filename for filename in open(input_list_file, 'r').readlines() if filename.strip() != '']
 
     # if the file that logs mismatches already exists, remove it first
-    try:
+    if include_annotations and os.path.isfile(mismatch_log_file_path):
         os.remove(mismatch_log_file_path)
-    except OSError:
-        pass
+
     for filename in tqdm(list_file):
         metamap_anns = []
-        assert (os.path.isfile(filename.strip()) and os.path.isfile('{0}.json'.format(filename.strip(
-        )))), 'The provided filename {0} either does not exist or does not have an annotation file of format .json'.format(filename.strip())
         file_text = open(filename.strip(), 'r').read()
-        anns = json.load(open('{0}.json'.format(filename.strip()), 'r'))
         # Checking for existing UMLS files
         if umls_param != 0:
             if os.path.isfile('{0}.umls.json'.format(filename.strip())):
-                metamap_anns = json.load(
-                    open('{0}.umls.json'.format(filename.strip()), 'r'))
+                metamap_anns = json.load(open('{0}.umls.json'.format(filename.strip()), 'r'))
             else:
-                logger.warning('UMLS file not found for {0}. Populating with empty umls annotations'.format(
-                    filename.strip()))
+                logger.warning('UMLS file not found for {0}. '
+                               'Populating with empty umls annotations'.format(filename.strip()))
+        valid_anns = []
+        if include_annotations:
+            assert (os.path.isfile(filename.strip()) and os.path.isfile('{0}.json'.format(filename.strip()))), \
+                'The provided filename {0} either does not exist ' \
+                'or does not have an annotation file of format .json'.format(filename.strip())
+            anns = json.load(open('{0}.json'.format(filename.strip()), 'r'))
+            valid_anns = verify_positions(anns, file_text, filename)
 
-        valid_anns = verify_positions(anns, file_text, filename)
-        notes.append(
-            (filename.strip(), build_char_annotations(valid_anns, file_text)))
         raw_text.append((filename.strip(), file_text, metamap_anns))
+        notes.append((filename.strip(), build_char_annotations(valid_anns, file_text)))
     return raw_text, notes

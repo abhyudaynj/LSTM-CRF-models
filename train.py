@@ -14,11 +14,7 @@ logger = logging.getLogger(__name__)
 import scripts.utils as utilscripts
 from bionlp.taggers.rnn_feature.tagger import rnn_train
 from bionlp.preprocess.dataset_preprocess import encode_data_format, decode_training_data
-from bionlp.preprocess.extract_data import annotated_file_extractor
-from bionlp.data.token import Token
-from bionlp.data.sentence import Sentence
-from bionlp.data.document import Document
-from bionlp.data.dataset import Dataset
+from bionlp.preprocess.extract_data import get_text_from_files
 from bionlp.modifiers.crf_modifiers import add_BIO
 from bionlp.modifiers.rnn_modifiers import add_surface_feature_list, add_umls_type, construct_umls_rnn_features
 from bionlp.evaluate.evaluation import get_Approx_Metrics, get_Exact_Metrics, evaluator
@@ -36,10 +32,8 @@ def load_label_blacklist(label_blacklist_file):
 
 def trainer(config_params):
     if config_params['data-refresh'] == 1:
-        logger.info('Loading new input dataset from  {0}'.format(
-            config_params['input']))
-        raw_text, documents = annotated_file_extractor(
-            config_params['input'], config_params['umls'])
+        logger.info('Loading new input dataset from  {0}'.format(config_params['input']))
+        raw_text, documents = get_text_from_files(config_params['input'], config_params['umls'], include_annotations=True)
 
         label_blacklist = load_label_blacklist(config_params['label-blacklist-file'])
 

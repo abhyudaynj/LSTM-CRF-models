@@ -6,7 +6,7 @@ import logging
 
 from bionlp.taggers.rnn_feature.tagger import rnn_train
 from bionlp.preprocess.dataset_preprocess import encode_data_format, decode_training_data
-from bionlp.preprocess.extract_data import file_extractor, annotated_file_extractor
+from bionlp.preprocess.extract_data import get_text_from_files
 from bionlp.modifiers.crf_modifiers import add_BIO
 from bionlp.modifiers.rnn_modifiers import add_surface_feature_list, add_umls_type, construct_umls_rnn_features
 from bionlp.utils.crf_arguments import deploy_arguments
@@ -28,9 +28,8 @@ def trainer(params):
     if not params['noeval']:
         logger.info('Evaluation on the input dataset is on ( -noeval 0). '
                     'I will search for gold standard annotation in .json files ')
-        raw_text, documents = annotated_file_extractor(deploy_params['input'], params['umls'])
-    else:
-        raw_text, documents = file_extractor(deploy_params['input'], params['umls'])
+    raw_text, documents = get_text_from_files(deploy_params['input'], params['umls'],
+                                              include_annotations=not params['noeval'])
     encoded_documents = encode_data_format(documents, raw_text, params['umls'])
 
     if params['umls'] != 0 and 'UMLS_TYPE' not in encoded_documents.active:
