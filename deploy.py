@@ -23,8 +23,7 @@ sys.path.insert(0, full_path)
 
 
 def trainer(params):
-    logger.info('Loading new input dataset from  {0}'.format(
-        deploy_params['input']))
+    logger.info('Loading new input dataset from  {0}'.format(deploy_params['input']))
     if not params['noeval']:
         logger.info('Evaluation on the input dataset is on ( -noeval 0). '
                     'I will search for gold standard annotation in .json files ')
@@ -53,11 +52,9 @@ def trainer(params):
 
     # Decoding Data into training format #
     dataset = decode_training_data(encoded_documents)
-    texts, label, pred = rnn_train(
-        dataset, params, w2i, umls_vocab_dict)
+    texts, label, pred = rnn_train(dataset, params, w2i, umls_vocab_dict)
     if params['output-dir'] is not 'None':
-        prepare_document_report(
-            texts, label, pred, encoded_documents, params['output-dir'])
+        prepare_document_report(texts, label, pred, encoded_documents, params['output-dir'])
     if not params['noeval']:
         evaluator(label, pred, get_Exact_Metrics)
         evaluator(label, pred, get_Approx_Metrics)
