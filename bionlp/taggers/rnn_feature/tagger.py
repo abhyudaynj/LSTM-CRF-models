@@ -5,7 +5,8 @@ import bionlp.evaluate.evaluation as evaluation
 import json
 import bionlp.utils.data_utils as data_utils
 import bionlp.utils.monitoring as monitor
-from analysis.io import save_net_params_if_necessary
+from bionlp.taggers.rnn_feature.networks.utils import get_crf_model
+from analysis.io import save_net_params_if_necessary, update_monitoring, store_response
 import errno
 import logging
 import lasagne
@@ -14,10 +15,10 @@ from sklearn.utils import shuffle as sk_shuffle
 import datetime
 import os
 
+
 np.random.seed(1337)  # for reproducibility
 params = {}
 X = U = Y = Z = Mask = i2t = t2i = w2i = i2w = splits = numTags = emb_w = []
-setup_NN = {}
 
 sl = logging.getLogger(__name__)
 
@@ -169,6 +170,7 @@ def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
 
 def driver(worker, xxx_todo_changeme):
     (train_i, test_i) = xxx_todo_changeme
+    setup_nn = get_crf_model(params)
     if worker == 0:
         sl.info('Embedding Shape : {0}'.format(emb_w.shape))
         sl.info('{0} train sequences'.format(len(X[train_i])))
@@ -192,7 +194,7 @@ def driver(worker, xxx_todo_changeme):
         sl.info('Y_train shape:{0}'.format(Y[train_i].shape))
         sl.info('Y_test shape:{0}'.format(Y[test_i].shape))
 
-    netd = setup_NN(0, X[0:params['batch-size']], U[0:params['batch-size']],
+    netd = setup_nn(0, X[0:params['batch-size']], U[0:params['batch-size']],
                     Mask[0:params['batch-size']], Y[0:params['batch-size']], params, numTags, emb_w)
     crf_output, lstm_output, train, compute_cost, compute_acc, compute_cost_regularization = netd['crf_output'], netd[
         'lstm_output'], netd['train'], netd['compute_cost'], netd['compute_acc'], netd['compute_cost_regularization']
@@ -226,15 +228,6 @@ def driver(worker, xxx_todo_changeme):
     return results
 
 
-def store_response(o, l, p, filename='response.pkl'):
-    sl.info("Storing responses in {0}".format(filename))
-    pickle.dump((params, o, l, p), open(filename, 'wb'))
-
-
-def update_monitoring(filename='monitor.pkl'):
-    pickle.dump(monitor.get_data(), open(filename, 'wb'))
-
-
 def single_run():
     worker = 0
     o, l, p = driver(worker, splits[worker])
@@ -257,7 +250,7 @@ def cross_validation_run():
     flat_label = [word for sentenc in label_sent for word in sentenc]
     flat_predicted = [word for sentenc in predicted_sent for word in sentenc]
     evaluation.get_Approx_Metrics(
-        flat_label, flat_predicted, preMsg='NN_VALIDATION:', flat_list=True)
+        flat_label, flat_predicted, pre_msg='NN_VALIDATION:', flat_list=True)
     sl.info("STRICT ---")
     evaluation.get_Exact_Metrics(label_sent, predicted_sent)
     if params['error-analysis'] != 'None':
@@ -288,31 +281,11 @@ def evaluate_run():
 
 
 def rnn_train(dataset, config_params, vocab, umls_vocab):
-    global params, setup_NN
+    global params
 
     global X, U, Y, Z, Mask, i2t, t2i, w2i, i2w, splits, numTags, emb_w, umls_v
     params = config_params
     umls_v = umls_vocab
-    if 'CRF_MODEL_ON' in params and params['CRF_MODEL_ON']:
-        sl.info('CRF IS ON. CRF_MODELS WILL BE USED')
-        if params['mode'] == 1:
-            from bionlp.taggers.rnn_feature.networks.approx_network import setup_NN
-            sl.info('MODE :Using the Approximate Message Passing framework')
-        elif params['mode'] == -1:
-            from bionlp.taggers.rnn_feature.networks.network import setup_NN
-            sl.info('MODE : Modeling only the unary potentials')
-        else:
-            sl.info('MODE : Modeling both unary and binary potentials')
-            from bionlp.taggers.rnn_feature.networks.dual_network import setup_NN
-    else:
-        sl.info(
-            'CRF IS NOT ON. This tagger only supports CRF models. A default CRF_MODEL will be used.')
-        params['mode'] = 1
-        params['CRF_MODEL_ON'] = True
-        from bionlp.taggers.rnn_feature.networks.approx_network import setup_NN
-        sl.info('MODE :Using the Approximate Message Passing framework')
-
-    sl.info('Using the parameters:\n {0}'.format(json.dumps(params, indent=2)))
 
     # Preparing Dataset
     sl.info('Preparing entire dataset for Neural Net computation ...')

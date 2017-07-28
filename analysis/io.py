@@ -79,3 +79,12 @@ def save_net_params_if_necessary(netd, params, w2i, t2i, umls_v):
         nn_packet = {'params': relevant_params, 'nn': nn_values,
                      'w2i': w2i, 't2i': t2i, 'umls_vocab': umls_v}
         pickle.dump(nn_packet, open(params['model'], 'wb'))
+
+
+def store_response(o, l, p, filename='response.pkl'):
+    sl.info("Storing responses in {0}".format(filename))
+    pickle.dump((params, o, l, p), open(filename, 'wb'))
+
+
+def update_monitoring(filename='monitor.pkl'):
+    pickle.dump(monitor.get_data(), open(filename, 'wb'))
