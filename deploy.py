@@ -75,11 +75,12 @@ if __name__ == "__main__":
     config_params['model'] = deploy_params['model']
     config_params['noeval'] = deploy_params['noeval']
     config_params['output-dir'] = deploy_params['outputdir']
+    config_params['error-analysis'] = deploy_params['output']
     config_params['dependency'] = {}
     config_params['trainable'] = False
     # Using hardcoded dataset percentage
     config_params['dataset_percentage'] = 100
-    config_params['error-analysis'] = deploy_params['output']
+
     print("Using the parameters :")
     print(json.dumps(config_params, indent=2))
     trainer(config_params)
