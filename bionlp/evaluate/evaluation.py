@@ -53,32 +53,20 @@ def get_Approx_Metrics(y_true, y_pred, verbose=True, pre_msg='', flat_list=False
     avg_recall = float(avg_recall) / float(intermediate_sum)
     avg_precision = float(avg_precision) / float(intermediate_sum)
     if (float(avg_recall) + float(avg_precision)) != 0.0:
-        avg_f1 = 2.0 * float(avg_precision) * float(avg_recall) / \
-            (float(avg_recall) + float(avg_precision))
-    else:
-        avg_f1 = 0.0
+        avg_f1 = 2.0 * float(avg_precision) * float(avg_recall) /  (float(avg_recall) + float(avg_precision))
     if verbose:
         print(("All medical tags collectively have {0} elements and recall,precision,f1 ={1},{2}, {3}".format(
             intermediate_sum, avg_recall, avg_precision, avg_f1)))
     return avg_f1
 
 
-def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_file='None'):
-    # Confusion Matrix is only valid for partial evaluation.
-    true_chain = list(itertools.chain.from_iterable(true))
-    predicted_chain = list(itertools.chain.from_iterable(predicted))
-    cm = ConfusionMatrix(true_chain, predicted_chain)
-    msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(cm)
-    print(msg)
-    if is_final_eval and final_eval_out_file is not 'None':
-        io.pickle_confusion_matrix(cm, final_eval_out_file)
-
-
 def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_eval_out_file='None'):
     true, predicted = strip_bio(true, predicted)
     if verbose:
         print('------------------------ Exact Metrics---------------------------')
-        get_confusion_matrix(true, predicted, is_final_eval, final_eval_out_file)
+        cm = get_confusion_matrix(true, predicted)
+        if is_final_eval and final_eval_out_file is not 'None':
+            io.pickle_confusion_matrix(cm, final_eval_out_file)
     labels = get_labels(true, predicted)
     true_positive = {label: 0 for label in labels}
     trues = {label: 0 for label in labels}
@@ -209,11 +197,6 @@ def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, i2t, i2w, params,
     return res, (original_sent, label_sent, predicted_sent)
 
 
-def append_message_to_final_eval_file(message, final_eval_out_file):
-    with open(final_eval_out_file, 'a') as f_out:
-        f_out.write(message + '\n')  
-
-
 def evaluator(l, p, metric_func=get_Exact_Metrics):
     metric_func(l, p)
 
@@ -224,3 +207,13 @@ def strip_bio(l, p):
     for i, sent in enumerate(p):
         p[i] = [token[2:] if token[:2] == 'B-' else token for token in p[i]]
     return l, p
+
+
+def get_confusion_matrix(true, predicted):
+    # Confusion Matrix is only valid for partial evaluation.
+    true_chain = list(itertools.chain.from_iterable(true))
+    predicted_chain = list(itertools.chain.from_iterable(predicted))
+    cm = ConfusionMatrix(true_chain, predicted_chain)
+    msg = "Confusion Matrix of combined folds (partial evaluation)\n{0}".format(cm)
+    logger.info(msg)
+    return cm
