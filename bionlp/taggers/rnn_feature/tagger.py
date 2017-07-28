@@ -1,28 +1,20 @@
 import numpy as np
 from tqdm import tqdm
 import pickle
-import argparse
-import bionlp.evaluate.evaluation as eval_metrics
-import sys
-import random
+import bionlp.evaluate.evaluation as evaluation
 import json
-np.random.seed(1337)  # for reproducibility
 import bionlp.utils.data_utils as data_utils
 import bionlp.utils.monitoring as monitor
+from analysis.io import save_net_params_if_necessary
 import errno
-from nltk.metrics import ConfusionMatrix
-import itertools
-import time
 import logging
 import lasagne
 from . import tagger_utils as preprocess
-from sklearn.metrics import f1_score
 from sklearn.utils import shuffle as sk_shuffle
-import theano.tensor as T
-import theano
 import datetime
 import os
 
+np.random.seed(1337)  # for reproducibility
 params = {}
 X = U = Y = Z = Mask = i2t = t2i = w2i = i2w = splits = numTags = emb_w = []
 setup_NN = {}
@@ -31,11 +23,11 @@ sl = logging.getLogger(__name__)
 
 
 # TODO: worker is not used
-def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, compute_acc, compute_cost_regularization, worker, netd):
-    if params['patience'] != 0:
-        vals = [0.0] * params['patience']
-    if params['model'] is not 'None' and params['save-interval-mins'] is not 0:
-        time_of_last_save = datetime.datetime.now()
+def train_NN(train, crf_output, lstm_output, train_indices, compute_cost,
+             compute_acc, compute_cost_regularization, worker, netd):
+    time_of_last_save = datetime.datetime.now()
+    vals = [0.0] * params['patience']
+
     sl.info('Dividing the training set into {0} % training and {1} % dev set'.format(
         100 - params['dev'], params['dev']))
     train_i = np.copy(train_indices)
@@ -61,17 +53,20 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
     # perform training until the defined termination condition has been reached
     if params['epochs'] == 0 and params['patience'] == 0:
         # if epochs are 0 and patience is 0, the training can't end, so don't start it
-        sl.error("Aborting training. Both 'epochs' and 'patience' are set to 0, so the training would have no termination condition.")
+        sl.error("Aborting training. Both 'epochs' and 'patience' are set to 0, "
+                 "so the training would have no termination condition.")
     else:
         # train until the desired number of epochs is reached or until the patience runs out
         iter_num = 1
         while True:
-            perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches)
-            if params['epochs'] > 0 and iter_num >= params['epochs']:
+            perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train,
+                                       mask_train, y_train, params, iter_num, num_batches)
+            if iter_num >= params['epochs'] > 0:
                 sl.info("Stopping because the final epoch (epoch {0}) has been reached".format(params['epochs']))
                 break
             elif params['patience'] != 0:
-                patience_has_ended, vals = check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals)
+                patience_has_ended, vals = \
+                    check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals)
                 if patience_has_ended:
                     sl.info("Stopping because my patience has reached its limit.")
                     break
@@ -81,23 +76,26 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost, comput
                 sl.debug("Minutes since last save: %f" % mins_since_last_save)
                 if mins_since_last_save >= params['save-interval-mins']:
                     sl.info("Enough time has passed; save the network parameters")
-                    save_net_params_if_necessary(netd, params)
+                    save_net_params_if_necessary(netd, params, w2i, t2i, umls_v)
                     time_of_last_save = datetime.datetime.now()
             iter_num += 1
             if params['monitoring-file'] != 'None':
                 update_monitoring(params['monitoring-file'])
 
     sl.info("Final Validation eval")
-    evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, is_final_eval=True)
+    evaluation.evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, i2t, i2w, params,
+                                  strict=True, is_final_eval=True)
 
 
-def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train, y_train, params, iter_num, num_batches):
+def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_regularization, x_train, mask_train,
+                               y_train, params, iter_num, num_batches):
     try:
         iter_cost = 0.0
         iter_acc = 0.0
         iter_cost_regularization = 0.0
         sl.info(('Iteration number : {0}'.format(iter_num)))
-        for x_i, m_i, y_i in tqdm(preprocess.iterate_minibatches(x_train, mask_train, y_train, params['batch-size']), total=num_batches, leave=False):
+        for x_i, m_i, y_i in tqdm(preprocess.iterate_minibatches(x_train, mask_train, y_train, params['batch-size']),
+                                  total=num_batches, leave=False):
             train(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
                 'float32'), y_i.astype('float32'), m_i.astype('float32'))
             iter_cost += compute_cost(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
@@ -118,9 +116,6 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
         sl.info(('TRAINING : Accuracy = {0}'.format(acc)))
         sl.info(('TRAINING : Network+CRF loss = {0} CRF-regularization loss = {1} Total loss = {2}'.format(
             loss_net_crf, loss_crf, loss_tot)))
-        # if iter_num % 5 == 0:
-            # TODO: res is currently not used
-            # res = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True)
     except IOError as e:
         if e.errno != errno.EINTR:
             raise
@@ -128,23 +123,13 @@ def perform_training_iteration(train, compute_cost, compute_acc, compute_cost_re
             sl.error(" EINTR ERROR CAUGHT. YET AGAIN ")
 
 
-def save_net_params_if_necessary(netd, params):
-    if 'final_layers' in netd and params['model'] is not 'None' and params['trainable'] is True:
-        nn_values = lasagne.layers.get_all_param_values(netd['final_layers'])
-        sl.info('Saving NN param values to {0}'.format(params['model']))
-        relevant_params = dict(params)
-        del relevant_params['dependency']
-        nn_packet = {'params': relevant_params, 'nn': nn_values,
-                     'w2i': w2i, 't2i': t2i, 'umls_vocab': umls_v}
-        pickle.dump(nn_packet, open(params['model'], 'wb'))
-
-
 def check_for_patience(lstm_output, compute_cost, compute_acc, x_dev, mask_dev, y_dev, params, vals):
     patience_has_ended = False
     try:
         if params['patience-mode'] != 0:
             val_loss = 0
-            val_acc, _ = evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, strict=True, verbose=False)
+            val_acc, _ = evaluation.evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, i2t, i2w, params,
+                                                       strict=True, verbose=False)
         else:
             val_acc, val_loss = callback_NN(compute_cost, compute_acc, x_dev, mask_dev, y_dev)
         vals.append(val_acc)
@@ -171,8 +156,8 @@ def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
     sl.info('Executing validation Callback')
     val_loss = 0.0
     val_acc = 0.0
-    #num_batches=float(sum(1 for _ in preprocess.iterate_minibatches(X_test,mask_test,y_test,params['batch-size'])))
-    for indx, (x_i, m_i, y_i) in enumerate(preprocess.iterate_minibatches(X_test, mask_test, y_test, params['batch-size'])):
+    for indx, (x_i, m_i, y_i) in enumerate(preprocess.iterate_minibatches(
+            X_test, mask_test, y_test, params['batch-size'])):
         val_loss += compute_cost(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
             'float32'), y_i.astype('float32'), m_i.astype('float32'))
         val_acc += compute_acc(x_i[:, :, :1].astype('int32'), x_i[:, :, 1:].astype(
@@ -180,46 +165,6 @@ def callback_NN(compute_cost, compute_acc, X_test, mask_test, y_test):
     sl.info(('VALIDATION : acc = {0} loss = {1}'.format(
         val_acc / num_valid_batches, val_loss / num_valid_batches)))
     return val_acc / num_valid_batches, val_loss / num_valid_batches
-
-
-def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, z_test=None, strict=False, verbose=True, is_final_eval=False):
-    if params['trainable'] is False and params['noeval'] == True:
-        verbose = False
-    if z_test == None:
-        sl.info('z_test not provided. Using mask vector as a placeholder')
-        z_test = mask_test
-    sl.info(('Mask len test', len(mask_test)))
-    predicted = []
-    predicted_sent = []
-    label = []
-    label_sent = []
-    original_sent = []
-    for indx, (x_i, m_i, y_i, z_i) in enumerate(preprocess.iterate_minibatches(X_test, mask_test, y_test, params['batch-size'], z_test)):
-        for sent_ind, m_ind in enumerate(m_i):
-            o_sent = x_i[sent_ind][m_i[sent_ind] == 1].tolist()
-            original_sent.append(([i2w[int(l[0])]
-                                   for l in o_sent], z_i[sent_ind]))
-        y_p = lstm_output(x_i[:, :, :1].astype(
-            'int32'), x_i[:, :, 1:].astype('float32'), m_i.astype('float32'))
-        for sent_ind, m_ind in enumerate(m_i):
-            l_sent = np.argmax(
-                y_i[sent_ind][m_i[sent_ind] == 1], axis=1).tolist()
-            p_sent = np.argmax(
-                y_p[sent_ind][m_i[sent_ind] == 1], axis=1).tolist()
-            predicted_sent.append([i2t[l] for l in p_sent])
-            label_sent.append([i2t[l] for l in l_sent])
-        m_if = m_i.flatten()
-        label += np.argmax(y_i, axis=2).flatten()[m_if == 1].tolist()
-        predicted += np.argmax(y_p, axis=2).flatten()[m_if == 1].tolist()
-    res = eval_metrics.get_Approx_Metrics([i2t[l] for l in label], [
-                                          i2t[l] for l in predicted], verbose=verbose, preMsg='NN:', flat_list=True)
-    if strict:
-        res = eval_metrics.get_Exact_Metrics(
-            label_sent, predicted_sent, verbose=verbose, is_final_eval=is_final_eval, final_eval_out_file=params['eval-file'])
-        sl.info('Output number of tokens are {0}'.format(
-            sum(len(_) for _ in predicted_sent)))
-
-    return res, (original_sent, label_sent, predicted_sent)
 
 
 def driver(worker, xxx_todo_changeme):
@@ -263,19 +208,21 @@ def driver(worker, xxx_todo_changeme):
     else:
         sl.info('No file to load Network weights from has been given')
 
-    if 'trainable' in params and params['trainable'] == True:
+    if 'trainable' in params and params['trainable'] is True:
         train_NN(train, crf_output, lstm_output, train_i, compute_cost,
                  compute_acc, compute_cost_regularization, worker, netd)
 
-    save_net_params_if_necessary(netd, params)
+    save_net_params_if_necessary(netd, params, w2i, t2i, umls_v)
 
     if params['deploy'] == 1:
-        _, results = evaluate_neuralnet(lstm_output, np.concatenate([X[test_i].astype(
-            'float32'), U[test_i]], axis=2), Mask[test_i], Y[test_i], Z[test_i], strict=True, verbose=False)
+        _, results = evaluation.evaluate_neuralnet(
+            lstm_output, np.concatenate([X[test_i].astype('float32'), U[test_i]], axis=2),
+            Mask[test_i], Y[test_i], i2t, i2w, params, z_test=Z[test_i], strict=True, verbose=False)
     else:
         sl.info("Final evalution for this fold on testing set")
-        _, results = evaluate_neuralnet(lstm_output, np.concatenate([X[test_i].astype(
-            'float32'), U[test_i]], axis=2), Mask[test_i], Y[test_i], Z[test_i], strict=True, verbose=True)
+        _, results = evaluation.evaluate_neuralnet(
+            lstm_output, np.concatenate([X[test_i].astype('float32'), U[test_i]], axis=2),
+            Mask[test_i], Y[test_i], i2t, i2w, params, z_test=Z[test_i], strict=True, verbose=True)
     return results
 
 
@@ -309,10 +256,10 @@ def cross_validation_run():
     sl.info("#######################VALIDATED SET ########")
     flat_label = [word for sentenc in label_sent for word in sentenc]
     flat_predicted = [word for sentenc in predicted_sent for word in sentenc]
-    eval_metrics.get_Approx_Metrics(
+    evaluation.get_Approx_Metrics(
         flat_label, flat_predicted, preMsg='NN_VALIDATION:', flat_list=True)
     sl.info("STRICT ---")
-    eval_metrics.get_Exact_Metrics(label_sent, predicted_sent)
+    evaluation.get_Exact_Metrics(label_sent, predicted_sent)
     if params['error-analysis'] != 'None':
         store_response(original_sent, label_sent,
                        predicted_sent, params['error-analysis'])
@@ -320,16 +267,19 @@ def cross_validation_run():
 
 
 def deploy_run(splits, params):
-    sl.info('Running in Deploy Mode. This means I will train on all available data. Final Eval metrics will not be meaningful')
+    sl.info('Running in Deploy Mode. This means I will train on all available data. '
+            'Final Eval metrics will not be meaningful')
     if params['model'] is 'None':
         sl.warning(
-            'No model file location is provided. Without a model file location, the deployable model will not be saved anywhere')
+            'No model file location is provided. Without a model file location, '
+            'the deployable model will not be saved anywhere')
     res_dict = driver(0, (np.array(list(range(len(Y)))), splits[1]))
     return res_dict
 
 
 def evaluate_run():
-    sl.info('Running in Evaluate Mode. I will not learn anything, only evaluate the existing model on the entire provided data ')
+    sl.info('Running in Evaluate Mode. I will not learn anything, '
+            'only evaluate the existing model on the entire provided data ')
     o, l, p = driver(0, (np.array(list(range(len(Y)))),
                          np.array(list(range(len(Y))))))
     if params['error-analysis'] != 'None':
@@ -365,20 +315,21 @@ def rnn_train(dataset, config_params, vocab, umls_vocab):
     sl.info('Using the parameters:\n {0}'.format(json.dumps(params, indent=2)))
 
     # Preparing Dataset
-
     sl.info('Preparing entire dataset for Neural Net computation ...')
     (X, U, Z, Y), numTags, emb_w, t2i, w2i = preprocess.load_data(
         dataset, params, entire_note=params['document'], vocab=vocab)
 
     X, U, Y, Z, Mask = preprocess.pad_and_mask(X, U, Y, Z, params['maxlen'])
-    sl.info('Total non zero entries in the Mask Inputs are {0}. This number should be equal to total number of tokens in the entire dataset'.format(
-        sum(sum(_) for _ in Mask)))
+    sl.info('Total non zero entries in the Mask Inputs are {0}. This number should be equal to '
+            'the total number of tokens in the entire dataset'.format(sum(sum(_) for _ in Mask)))
     if params['shuffle'] == 1:
         X, U, Y, Z, Mask = sk_shuffle(X, U, Y, Z, Mask, random_state=0)
     i2t = {v: k for k, v in list(t2i.items())}
     i2w = {v: k for k, v in list(w2i.items())}
     splits = data_utils.make_cross_validation_sets(
         len(Y), params['folds'], training_percent=params['training-percent'])
+
+    o = l = p = None
     try:
         if params['trainable'] is False:
             (o, l, p) = evaluate_run()
@@ -394,4 +345,4 @@ def rnn_train(dataset, config_params, vocab, umls_vocab):
         else:
             sl.error(" EINTR ERROR CAUGHT. YET AGAIN ")
     sl.info('Using the parameters:\n {0}'.format(json.dumps(params, indent=2)))
-    return (o, l, p)
+    return o, l, p

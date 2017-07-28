@@ -1,11 +1,12 @@
-import pickle
+from bionlp.taggers.rnn_feature.tagger_utils import iterate_minibatches
+import analysis.io as io
+import numpy as np
 import itertools
 import logging
-import json
 from nltk.metrics import ConfusionMatrix
 from sklearn.metrics import f1_score, recall_score, precision_score
 import collections
-import analysis.io as io
+
 
 IGNORE_TAG = 'None'
 logging.basicConfig(level=logging.INFO)
@@ -18,8 +19,7 @@ def get_labels(label, predicted):
     return labels
 
 
-def get_Approx_Metrics(y_true, y_pred, verbose=True, preMsg='', flat_list=False):
-
+def get_Approx_Metrics(y_true, y_pred, verbose=True, pre_msg='', flat_list=False):
     if verbose:
         print('------------------------ Approx Metrics---------------------------')
     if flat_list:
@@ -37,13 +37,12 @@ def get_Approx_Metrics(y_true, y_pred, verbose=True, preMsg='', flat_list=False)
     f1s = f1_score(z_true, z_pred, average=None)
     rs = recall_score(z_true, z_pred, average=None)
     ps = precision_score(z_true, z_pred, average=None)
-    results = []
     f1_none = []
     avg_recall = avg_precision = avg_f1 = 0.0
     for i in label_dict:
         if verbose:
             print(("{5} The tag \'{0}\' has {1} elements and recall,precision,f1 ={3},{4}, {2}".format(
-                i, freq_dict[i], f1s[label_dict[i]], rs[label_dict[i]], ps[label_dict[i]], preMsg)))
+                i, freq_dict[i], f1s[label_dict[i]], rs[label_dict[i]], ps[label_dict[i]], pre_msg)))
         if i != 'None' and i != '|O':
             f1_none = f1_none + [(f1s[label_dict[i]], freq_dict[i]), ]
             avg_recall += float(rs[label_dict[i]]) * float(freq_dict[i])
@@ -76,7 +75,7 @@ def get_confusion_matrix(true, predicted, is_final_eval=False, final_eval_out_fi
 
 
 def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_eval_out_file='None'):
-    true, predicted = strip_BIO(true, predicted)
+    true, predicted = strip_bio(true, predicted)
     if verbose:
         print('------------------------ Exact Metrics---------------------------')
         get_confusion_matrix(true, predicted, is_final_eval, final_eval_out_file)
@@ -152,7 +151,6 @@ def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_
                 l, trues[l], recall, precision, f1)
             print(msg)
 
-
     if num_candidates > 0:
         avg_recall = float(avg_recall) / float(num_candidates)
         avg_precision = float(avg_precision) / float(num_candidates)
@@ -168,6 +166,49 @@ def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_
     return avg_f1
 
 
+def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, i2t, i2w, params,
+                       z_test=None, strict=False, verbose=True, is_final_eval=False):
+    if params['trainable'] is False and params['noeval'] is True:
+        verbose = False
+    if z_test is None:
+        logger.info('z_test not provided. Using mask vector as a placeholder')
+        z_test = mask_test
+    logger.info(('Mask len test', len(mask_test)))
+    predicted = []
+    predicted_sent = []
+    label = []
+    label_sent = []
+    original_sent = []
+    for indx, (x_i, m_i, y_i, z_i) in enumerate(
+            iterate_minibatches(X_test, mask_test, y_test, params['batch-size'], z_test)):
+        for sent_ind, m_ind in enumerate(m_i):
+            o_sent = x_i[sent_ind][m_i[sent_ind] == 1].tolist()
+            original_sent.append(([i2w[int(l[0])]
+                                   for l in o_sent], z_i[sent_ind]))
+        y_p = lstm_output(x_i[:, :, :1].astype(
+            'int32'), x_i[:, :, 1:].astype('float32'), m_i.astype('float32'))
+        for sent_ind, m_ind in enumerate(m_i):
+            l_sent = np.argmax(
+                y_i[sent_ind][m_i[sent_ind] == 1], axis=1).tolist()
+            p_sent = np.argmax(
+                y_p[sent_ind][m_i[sent_ind] == 1], axis=1).tolist()
+            predicted_sent.append([i2t[l] for l in p_sent])
+            label_sent.append([i2t[l] for l in l_sent])
+        m_if = m_i.flatten()
+        label += np.argmax(y_i, axis=2).flatten()[m_if == 1].tolist()
+        predicted += np.argmax(y_p, axis=2).flatten()[m_if == 1].tolist()
+    res = get_Approx_Metrics([i2t[l] for l in label],
+                             [i2t[l] for l in predicted],
+                             verbose=verbose, pre_msg='NN:', flat_list=True)
+    if strict:
+        res = get_Exact_Metrics(label_sent, predicted_sent, verbose=verbose, is_final_eval=is_final_eval,
+                                final_eval_out_file=params['eval-file'])
+        logger.info('Output number of tokens are {0}'.format(
+            sum(len(_) for _ in predicted_sent)))
+
+    return res, (original_sent, label_sent, predicted_sent)
+
+
 def append_message_to_final_eval_file(message, final_eval_out_file):
     with open(final_eval_out_file, 'a') as f_out:
         f_out.write(message + '\n')  
@@ -177,7 +218,7 @@ def evaluator(l, p, metric_func=get_Exact_Metrics):
     metric_func(l, p)
 
 
-def strip_BIO(l, p):
+def strip_bio(l, p):
     for i, sent in enumerate(l):
         l[i] = [token[2:] if token[:2] == 'B-' else token for token in l[i]]
     for i, sent in enumerate(p):
