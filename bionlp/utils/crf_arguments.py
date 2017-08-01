@@ -139,6 +139,8 @@ def crf_model_arguments():
                              'If a training sentence includes a token whose target label is part of the blacklist, '
                              'the sentence is excluded from the training data set. If None, no blacklist is used. '
                              'Default None.')
+    parser.add_argument('-ef', '--eval-file', type=str, dest='eval-file', default='None',
+                        help='Path to the pkl file to store the confusion matrix. Default is None.')
 
     args = parser.parse_args()
     if args.input == 'None':
