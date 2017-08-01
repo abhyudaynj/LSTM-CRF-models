@@ -57,12 +57,13 @@ def trainer(params):
     if params['output-dir'] is not 'None':
         prepare_document_report(texts, label, pred, encoded_documents, params['output-dir'])
     if not params['noeval']:
-        get_Exact_Metrics(label, pred)
-        get_Approx_Metrics(label, pred)
         if params['eval-file'] is not 'None':
             true, predicted = strip_bio(label, pred)
             cm = create_confusion_matrix(true, predicted)
             io.pickle_confusion_matrix(cm, params['eval-file'])
+        get_Exact_Metrics(label, pred)
+        get_Approx_Metrics(label, pred)
+
 
 if __name__ == "__main__":
     deploy_params = deploy_arguments()
