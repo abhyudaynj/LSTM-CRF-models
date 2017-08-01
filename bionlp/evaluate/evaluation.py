@@ -64,7 +64,7 @@ def get_Exact_Metrics(true, predicted, verbose=True, is_final_eval=False, final_
     true, predicted = strip_bio(true, predicted)
     if verbose:
         print('------------------------ Exact Metrics---------------------------')
-        cm = get_confusion_matrix(true, predicted)
+        cm = create_confusion_matrix(true, predicted)
         if is_final_eval and final_eval_out_file is not 'None':
             io.pickle_confusion_matrix(cm, final_eval_out_file)
     labels = get_labels(true, predicted)
@@ -162,11 +162,8 @@ def evaluate_neuralnet(lstm_output, X_test, mask_test, y_test, i2t, i2w, params,
         logger.info('z_test not provided. Using mask vector as a placeholder')
         z_test = mask_test
     logger.info(('Mask len test', len(mask_test)))
-    predicted = []
-    predicted_sent = []
-    label = []
-    label_sent = []
-    original_sent = []
+
+    predicted = predicted_sent = label = label_sent = original_sent =[]
     for indx, (x_i, m_i, y_i, z_i) in enumerate(
             iterate_minibatches(X_test, mask_test, y_test, params['batch-size'], z_test)):
         for sent_ind, m_ind in enumerate(m_i):
@@ -209,7 +206,7 @@ def strip_bio(l, p):
     return l, p
 
 
-def get_confusion_matrix(true, predicted):
+def create_confusion_matrix(true, predicted):
     # Confusion Matrix is only valid for partial evaluation.
     true_chain = list(itertools.chain.from_iterable(true))
     predicted_chain = list(itertools.chain.from_iterable(predicted))
