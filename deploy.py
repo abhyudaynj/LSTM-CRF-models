@@ -56,11 +56,11 @@ def trainer(params):
     texts, label, pred = rnn_train(dataset, params, w2i, umls_vocab_dict)
     if params['output-dir'] is not 'None':
         prepare_document_report(texts, label, pred, encoded_documents, params['output-dir'])
+    if params['eval-file'] is not 'None':
+        true, predicted = strip_bio(label, pred)
+        cm = create_confusion_matrix(true, predicted)
+        io.pickle_confusion_matrix(cm, params['eval-file'])
     if not params['noeval']:
-        if params['eval-file'] is not 'None':
-            true, predicted = strip_bio(label, pred)
-            cm = create_confusion_matrix(true, predicted)
-            io.pickle_confusion_matrix(cm, params['eval-file'])
         get_Exact_Metrics(label, pred)
         get_Approx_Metrics(label, pred)
 
