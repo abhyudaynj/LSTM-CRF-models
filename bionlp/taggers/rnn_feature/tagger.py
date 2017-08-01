@@ -81,7 +81,7 @@ def train_NN(train, crf_output, lstm_output, train_indices, compute_cost,
                     time_of_last_save = datetime.datetime.now()
             iter_num += 1
             if params['monitoring-file'] != 'None':
-                update_monitoring(params['monitoring-file'])
+                update_monitoring(monitor.get_data(), params['monitoring-file'])
 
     sl.info("Final Validation eval")
     evaluation.evaluate_neuralnet(lstm_output, x_dev, mask_dev, y_dev, i2t, i2w, params,
@@ -232,7 +232,7 @@ def single_run():
     worker = 0
     o, l, p = driver(worker, splits[worker])
     if params['error-analysis'] != 'None':
-        store_response(o, l, p, params['error-analysis'])
+        store_response(o, l, p, params, filename=params['error-analysis'])
     return o, l, p
 
 
@@ -254,8 +254,7 @@ def cross_validation_run():
     sl.info("STRICT ---")
     evaluation.get_Exact_Metrics(label_sent, predicted_sent)
     if params['error-analysis'] != 'None':
-        store_response(original_sent, label_sent,
-                       predicted_sent, params['error-analysis'])
+        store_response(original_sent, label_sent, predicted_sent, params, filename=params['error-analysis'])
     return original_sent, label_sent, predicted_sent
 
 
@@ -276,7 +275,7 @@ def evaluate_run():
     o, l, p = driver(0, (np.array(list(range(len(Y)))),
                          np.array(list(range(len(Y))))))
     if params['error-analysis'] != 'None':
-        store_response(o, l, p, params['error-analysis'])
+        store_response(o, l, p, params, filename=params['error-analysis'])
     return o, l, p
 
 
