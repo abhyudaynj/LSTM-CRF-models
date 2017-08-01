@@ -74,6 +74,7 @@ if __name__ == "__main__":
 
     config_params = nn_v_d['params']
     config_params['model'] = deploy_params['model']
+    config_params['eval-file'] = deploy_params['eval-file']
     config_params['noeval'] = deploy_params['noeval']
     config_params['output-dir'] = deploy_params['outputdir']
     config_params['error-analysis'] = deploy_params['output']
