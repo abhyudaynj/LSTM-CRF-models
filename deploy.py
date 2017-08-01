@@ -3,14 +3,14 @@ import os
 import json
 import pickle
 import logging
-
+from analysis import io
 from bionlp.taggers.rnn_feature.tagger import rnn_train
 from bionlp.preprocess.dataset_preprocess import encode_data_format, decode_training_data
 from bionlp.preprocess.extract_data import get_text_from_files
 from bionlp.modifiers.crf_modifiers import add_BIO
 from bionlp.modifiers.rnn_modifiers import add_surface_feature_list, add_umls_type, construct_umls_rnn_features
 from bionlp.utils.crf_arguments import deploy_arguments
-from bionlp.evaluate.evaluation import get_Approx_Metrics, get_Exact_Metrics, evaluator
+from bionlp.evaluate.evaluation import get_Approx_Metrics, get_Exact_Metrics, strip_bio, create_confusion_matrix
 from bionlp.evaluate.postprocess import prepare_document_report
 
 
@@ -52,13 +52,17 @@ def trainer(params):
 
     # Decoding Data into training format #
     dataset = decode_training_data(encoded_documents)
+
     texts, label, pred = rnn_train(dataset, params, w2i, umls_vocab_dict)
     if params['output-dir'] is not 'None':
         prepare_document_report(texts, label, pred, encoded_documents, params['output-dir'])
     if not params['noeval']:
-        evaluator(label, pred, get_Exact_Metrics)
-        evaluator(label, pred, get_Approx_Metrics)
-
+        get_Exact_Metrics(label, pred)
+        get_Approx_Metrics(label, pred)
+        if params['eval-file'] is not 'None':
+            true, predicted = strip_bio(label, pred)
+            cm = create_confusion_matrix(true, predicted)
+            io.pickle_confusion_matrix(cm, params['eval-file'])
 
 if __name__ == "__main__":
     deploy_params = deploy_arguments()
