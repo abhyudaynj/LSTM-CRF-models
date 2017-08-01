@@ -14,7 +14,10 @@ def deploy_arguments():
     parser.add_argument('-d', '--outputdir', dest='outputdir', type=str, default='None',
                         help='location of output directory for annotations. default None')
     parser.add_argument('-n', '--noeval', dest='noeval', type=int, default=1,
-                        help='Do not run evaluation on the deployed dataset. This is useful when you do not have gold standard labels for the input text.0:Evaluation, 1:No Evaluation. Default 1')
+                        help='Do not run evaluation on the deployed dataset. This is useful when you do not have '
+                             'gold standard labels for the input text.0:Evaluation, 1:No Evaluation. Default 1')
+    parser.add_argument('-ef', '--eval-file', type=str, dest='eval-file', default='None',
+                        help='Path to the pkl file to store the confusion matrix. Default is None.')
 
     args = parser.parse_args()
     if args.input == 'None':
@@ -35,7 +38,8 @@ def default_arguments():
 
     # ------------------- Common Arguments ------------------
     parser.add_argument('-deploy', '--deploy', dest='deploy', type=int, default=0,
-                        help='prepares the tagger for deployment. This will override all testing parameters, and use only training params. default is 0 and means a cross validation run')
+                        help='prepares the tagger for deployment. This will override all testing parameters, '
+                             'and use only training params. default is 0 and means a cross validation run')
     parser.add_argument('-r', '--data-refresh', dest='data-refresh', type=int, default=1,
                         help='Use cached data, or reprocess/refresh the Dataset ? Default is 1: reprocess the data')
     parser.add_argument('-i', '--input', dest='input', type=str,
@@ -45,11 +49,14 @@ def default_arguments():
     parser.add_argument('-f', '--folds', dest='folds', type=int,
                         default=10, help='Number of cross validation folds. default 10')
     parser.add_argument('-ev', '--extra-vocab', dest='extra-vocab', type=int, default=0,
-                        help='Enable extra vocabulary from different corpuses provided in the depedency.json file. default is 0. 0:off 1: extra file -1: All available')
+                        help='Enable extra vocabulary from different corpuses provided in the depedency.json file. '
+                             'Default is 0. 0:off 1: extra file -1: All available')
     parser.add_argument('-model', '--model', dest='model', type=str, default='None',
                         help='location of parameter pickle output in a file. default None')
     parser.add_argument('-sim', '--save-interval-mins', dest='save-interval-mins', type=int, default='20',
-                        help='Time interval in minutes after which the trained network parameters are automatically saved to the given model file. If 0, no automatic saving takes place, but the parameters are still saved to the model file after training has concluded. Default 20.') 
+                        help='Time interval in minutes after which the trained network parameters are automatically '
+                             'saved to the given model file. If 0, no automatic saving takes place, but the parameters '
+                             'are still saved to the model file after training has concluded. Default 20.')
     parser.add_argument('-bio', '--bio', dest='bio', type=int,
                         default=0, help='Add BIO tags for CRF. default 0, off')
     parser.add_argument('-err', '--error-analysis', dest='error-analysis', type=str,
@@ -67,13 +74,15 @@ def default_arguments():
     parser.add_argument('-l', '--maxlen', dest='maxlen', type=int,
                         default=50, help='Maximum Length for padding. default 50')
     parser.add_argument('-p', '--patience', dest='patience', type=int, default=10,
-                        help='Stop if the validation accuracy has not increased in the last n iterations.Off if 0. default 10')
+                        help='Stop if the validation accuracy has not increased in the last n iterations.Off if 0. '
+                             'Default 10')
     parser.add_argument('-ptm', '--patience-mode', dest='patience-mode', type=int, default=0,
-                        help='Patience criterion is applied to strict-f1 or accuracy. 0 is default, accuracy. 1 is strict-f1')
+                        help='Patience criterion is applied to strict-f1 or accuracy.'
+                             ' 0 is default, accuracy. 1 is strict-f1')
     parser.add_argument('-lr', '--learning-rate', dest='learning-rate',
                         type=float, default=0.1, help='learning rate. default 0.1')
     parser.add_argument('-s', '--shuffle', dest='shuffle', type=int, default=0,
-                        help='Shuffle entire dataset. By default 0, means only shuffling the training and dev datasets.')
+                        help='Shuffle entire dataset. Default (0) means only shuffling the training and dev datasets.')
     parser.add_argument('-tp', '--tp', dest='training-percent', type=int,
                         default=100, help='Percentage of training data used. default is 100')
 
@@ -83,11 +92,12 @@ def default_arguments():
 def default_model_arguments(parser):
     # -------------------  Common Model Specific Arguments -------------------
     parser.add_argument('-w', '--word2vec', dest='word2vec', type=int, default=0,
-                        help='Initialize the Network with wordvec embeddings if 1. else random initialization. default 0')
+                        help='Initialize the Network with wordvec embeddings if 1. Else random (default)')
     parser.add_argument('-n1', '--noise1', dest='noise1', type=float,
                         default=0.50, help='Dropout Noise for first layer. Default is 0.50')
     parser.add_argument('-f1', '--feature1', dest='feature1', type=int, default=5,
-                        help='Dimensionality of the feature embedding layer. Default is 5. 10 will be added if UMLS is on')
+                        help='Dimensionality of the feature embedding layer. Default is 5. '
+                             '10 will be added if UMLS is on')
     parser.add_argument('-h1', '--hidden1', dest='hidden1', type=int, default=50,
                         help='Dimensionality of the first hidden layer. Default is 50')
     parser.add_argument('-h2', '--hidden2', dest='hidden2', type=int, default=0,
@@ -97,8 +107,8 @@ def default_model_arguments(parser):
     parser.add_argument('-e2', '--emb2', dest='emb2', type=int, default=0,
                         help='Number of dimension of extra embedding layer. off if 0. default is 0')
     parser.add_argument('-e1s', '--emb1_size', dest='emb1_size', type=int, default=200,
-                        help='Dimensionality of the word2vec vectors, if no model is given to initialize the word2vec vectors with. default 200')
-
+                        help='Dimensionality of the word2vec vectors, if no model is given '
+                             'to initialize the word2vec vectors with. default 200')
     return parser
 
 
@@ -115,15 +125,20 @@ def crf_model_arguments():
     parser.add_argument('-l1', '--l1cost', dest='l1', type=float,
                         default=0.0, help='Add l2 penalty. default 0.0, off')
     parser.add_argument('-mode', '--mode', dest='mode', type=int, default=1,
-                        help='Mode of structured inference. Default is 1 : Modeling unary and binary potentials with neural nets. 1: Approximating Messages -1 : Only modeling the unary potential with neural nets.')
+                        help='Mode of structured inference. '
+                             'Default is 1: Modeling unary and binary potentials with neural nets. '
+                             '1: Approximating Messages '
+                             '-1 : Only modeling the unary potential with neural nets.')
     parser.add_argument('-mf', '--monitoring-file', type=str, dest='monitoring-file', default='None',
                         help='Path to the file to store monitoring during training. Default is None (no monitoring)')
-    parser.add_argument('-ef', '--eval-file', type=str, dest='eval-file', default='None',
-                        help='Path to the pkl file to store the confusion matrix of the final training evaluation. Default is None.')
     parser.add_argument('-sl', '--sent-limit', type=int, dest='sent-limit', default=0,
-                        help='The maximum number of sentences that are to be read from the training data set and subsequently used for training. If 0, the entire training data set is used. Default 0.')
+                        help='The maximum number of sentences that are to be read from the training data set and '
+                             'subsequently used for training. If 0, the entire training data set is used. Default 0.')
     parser.add_argument('-lbf', '--label-blacklist-file', type=str, dest='label-blacklist-file', default='None',
-                        help='Path to a file containing a blacklist of target labels. If a training sentence includes a token whose target label is part of the blacklist, the sentence is excluded from the training data set. If None, no blacklist is used. Default None.')
+                        help='Path to a file containing a blacklist of target labels. '
+                             'If a training sentence includes a token whose target label is part of the blacklist, '
+                             'the sentence is excluded from the training data set. If None, no blacklist is used. '
+                             'Default None.')
 
     args = parser.parse_args()
     if args.input == 'None':
